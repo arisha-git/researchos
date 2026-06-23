@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { IngestedDocument, SemanticChunk } from '../types/retrieval';
+import { IngestedDocument } from '../types/retrieval';
 import { ClassificationRoute } from '../types/routing';
 
 interface ResearchStore {
@@ -10,6 +10,7 @@ interface ResearchStore {
   currentRoute: ClassificationRoute | null;
   copilotResponse: string | null;
   isCopilotLoading: boolean;
+  isPDFIngesting: boolean;
   
   setApiKey: (key: string) => void;
   addDocument: (doc: IngestedDocument) => void;
@@ -18,6 +19,7 @@ interface ResearchStore {
   setRoute: (route: ClassificationRoute | null) => void;
   setCopilotResponse: (response: string | null) => void;
   setCopilotLoading: (loading: boolean) => void;
+  setPDFIngesting: (loading: boolean) => void;
 }
 
 export const useResearchStore = create<ResearchStore>((set) => ({
@@ -46,12 +48,20 @@ export const useResearchStore = create<ResearchStore>((set) => ({
   currentRoute: null,
   copilotResponse: null,
   isCopilotLoading: false,
+  isPDFIngesting: false,
 
   setApiKey: (key) => set({ apiKey: key }),
-  addDocument: (doc) => set((state) => ({ documents: [...state.documents, doc] })),
+  
+  addDocument: (doc) => set((state) => ({ 
+    documents: [...state.documents, doc],
+    activeDocId: doc.id,
+    activePage: 1
+  })),
+  
   setActiveDocId: (id) => set({ activeDocId: id, activePage: 1 }),
   setActivePage: (page) => set({ activePage: page }),
   setRoute: (route) => set({ currentRoute: route }),
   setCopilotResponse: (response) => set({ copilotResponse: response }),
-  setCopilotLoading: (loading) => set({ isCopilotLoading: loading })
+  setCopilotLoading: (loading) => set({ isCopilotLoading: loading }),
+  setPDFIngesting: (loading) => set({ isPDFIngesting: loading })
 }));

@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ResearchOS - Understand entire research domains in minutes',
+  title: 'ResearchOS',
   description: 'AI-powered research operating system that helps users analyze multiple research papers simultaneously.',
 };
 

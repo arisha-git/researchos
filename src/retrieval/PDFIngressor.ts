@@ -1,8 +1,11 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Initialize the CDN worker to ensure PDF.js executes cleanly inside the client browser context
+// Production-safe worker registration using Webpack 5 / Turbopack native URL asset binding
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.141/pdf.worker.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url
+  ).toString();
 }
 
 export class PDFIngressor {
@@ -17,7 +20,7 @@ export class PDFIngressor {
   }> {
     const arrayBuffer = await file.arrayBuffer();
     
-    // Load the document using client worker task threads
+    // Load the document using local worker task threads
     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
     const pdf = await loadingTask.promise;
     const totalPages = pdf.numPages;

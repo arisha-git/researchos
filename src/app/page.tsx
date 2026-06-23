@@ -1,42 +1,58 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Layers, PlusCircle, Database, BookOpen, ChevronLeft, ChevronRight, 
   HelpCircle, Sparkles, Brain, Code, Network, Presentation, Bot, ArrowRight, ShieldAlert
 } from 'lucide-react';
 import { useResearchStore } from '../state/useResearchStore';
 import { AgenticRouter } from '../routing/AgenticRouter';
+import { PDFIngressor } from '../retrieval/PDFIngressor';
 
 export default function ResearchOSPage() {
   const { 
     apiKey, setApiKey, documents, addDocument, activeDocId, 
     setActiveDocId, activePage, setActivePage, currentRoute, 
-    setRoute, copilotResponse, setCopilotResponse, isCopilotLoading, setCopilotLoading 
+    setRoute, copilotResponse, setCopilotResponse, isCopilotLoading, 
+    setCopilotLoading, isPDFIngesting, setPDFIngesting 
   } = useResearchStore();
 
   const [activeTab, setActiveTab] = useState<'reader' | 'gap' | 'synthesis' | 'graph' | 'presentation'>('reader');
   const [queryInput, setQueryInput] = useState('');
   const [isTraceOpen, setIsTraceOpen] = useState(false);
+  
+  // Create reference to programmatically click hidden HTML5 file input element
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Active Doc computation
   const activeDoc = documents.find(d => d.id === activeDocId);
 
-  // Mock document adding ingestion system
-  const handleIngestFakeDocument = () => {
-    const docName = `Dynamic_Research_Node_0${documents.length + 1}.pdf`;
-    addDocument({
-      id: `doc-${Date.now()}`,
-      document_name: docName,
-      total_pages: 1,
-      pages: [
-        {
-          page_number: 1,
-          section_header: "Methodology Extract",
-          raw_text: "This document extracts baseline properties for structural evaluations under localized testing guidelines."
-        }
-      ]
-    });
+  // Structural Local PDF parser executor
+  const handlePDFSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setPDFIngesting(true);
+    try {
+      const selectedFile = files[0];
+      const parsedData = await PDFIngressor.parsePDF(selectedFile);
+
+      addDocument({
+        id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        document_name: parsedData.document_name,
+        total_pages: parsedData.total_pages,
+        pages: parsedData.pages
+      });
+
+    } catch (err) {
+      console.error("Failed to extract raw text content structures from target PDF:", err);
+      alert("Error parsing PDF. Please verify this is a valid unencrypted PDF document.");
+    } finally {
+      setPDFIngesting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Clean input buffer state
+      }
+    }
   };
 
   // Agentic Query Execution flow
@@ -48,7 +64,6 @@ export default function ResearchOSPage() {
     setCopilotResponse(null);
 
     try {
-      // Use local routing simulation fallback logic
       const router = new AgenticRouter();
       const route = await router.triageQuery(
         queryInput, 
@@ -58,15 +73,14 @@ export default function ResearchOSPage() {
 
       setRoute(route);
 
-      // Core simulation based on workflow outputs
       setTimeout(() => {
         let simulatedBody = "";
         if (route.workflow_selected === "Multi-Document Comparison") {
-          simulatedBody = `**Analysis compiled:** Based on cross-document evaluation, ${documents[0]?.document_name} targets parallelization, whereas newly uploaded vectors address specific parameter efficiency optimizations.`;
+          simulatedBody = `**Analysis compiled:** Based on cross-document evaluation, ${documents[0]?.document_name} targets sequence parallelization, whereas newly ingested layers introduce specific modular scaling constraints.`;
         } else if (route.workflow_selected === "Research Gap Analysis") {
-          simulatedBody = "**Analysis compiled:** Structural tracking detects gaps within quadratic compute boundaries. Evaluations under extreme sequence limits remain completely missing.";
+          simulatedBody = "**Analysis compiled:** Structural tracking detects gaps within quadratic compute boundaries. Evaluation profiles under extreme long sequence conditions are missing.";
         } else {
-          simulatedBody = `**Analysis compiled:** Found targeted context markers inside ${activeDoc?.document_name}. Methodology matches baseline state transformations.`;
+          simulatedBody = `**Analysis compiled:** Isolated key conceptual segments matching active parameters within the document structure.`;
         }
         setCopilotResponse(simulatedBody);
         setCopilotLoading(false);
@@ -117,11 +131,28 @@ export default function ResearchOSPage() {
         {/* Left Side: Sources Ingestion */}
         <aside className="w-64 border-r border-slate-800 bg-slate-900/20 flex flex-col h-full shrink-0">
           <div className="p-4 border-b border-slate-800">
-            <button onClick={handleIngestFakeDocument} className="w-full border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all bg-slate-900/50 hover:bg-indigo-950/10 group">
-              <PlusCircle className="w-5 h-5 text-slate-400 group-hover:text-indigo-400" />
+            {/* Hidden native HTML5 file uploader */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handlePDFSelection} 
+              accept=".pdf" 
+              className="hidden" 
+            />
+            
+            <button 
+              disabled={isPDFIngesting}
+              onClick={() => fileInputRef.current?.click()} 
+              className="w-full border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all bg-slate-900/50 hover:bg-indigo-950/10 group disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <PlusCircle className={`w-5 h-5 ${isPDFIngesting ? 'text-amber-400 animate-spin' : 'text-slate-400 group-hover:text-indigo-400'}`} />
               <div className="text-center">
-                <span className="text-xs font-semibold text-slate-300">Add Research Source</span>
-                <p className="text-[10px] text-slate-500 mt-0.5">Ingest PDF papers</p>
+                <span className="text-xs font-semibold text-slate-300">
+                  {isPDFIngesting ? 'Extracting Text...' : 'Add Research Source'}
+                </span>
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  {isPDFIngesting ? 'Converting structures...' : 'Ingest PDF papers'}
+                </p>
               </div>
             </button>
           </div>
@@ -182,7 +213,7 @@ export default function ResearchOSPage() {
                       {activeDoc.pages[activePage - 1]?.section_header || "Section Frame"}
                     </h2>
                     <p className="text-slate-400 text-xs font-sans italic mb-6">Page {activePage} of {activeDoc.document_name}</p>
-                    <div>{activeDoc.pages[activePage - 1]?.raw_text}</div>
+                    <div className="whitespace-pre-wrap">{activeDoc.pages[activePage - 1]?.raw_text}</div>
                   </div>
                 ) : (
                   <div className="text-slate-500 text-xs mt-20">Please select an ingested research node.</div>

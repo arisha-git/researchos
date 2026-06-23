@@ -149,6 +149,28 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 
 /***/ }),
 
+/***/ "(ssr)/./src/services/ChunkingEngine.ts":
+/*!****************************************!*\
+  !*** ./src/services/ChunkingEngine.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   ChunkingEngine: () => (/* binding */ ChunkingEngine)\n/* harmony export */ });\nclass ChunkingEngine {\n    /**\n   * Automatically segments an IngestedDocument into logical semantic chunks\n   * of approximately 500-1000 characters, respecting section and page boundaries.\n   */ static chunkDocument(doc) {\n        const chunks = [];\n        let chunkCounter = 0;\n        for (const page of doc.pages){\n            const text = page.raw_text;\n            // Split by paragraphs\n            const paragraphs = text.split(/\\n\\s*\\n/);\n            let currentChunkText = \"\";\n            for (const para of paragraphs){\n                const trimmedPara = para.trim();\n                if (!trimmedPara) continue;\n                // Check if adding this paragraph exceeds our upper ceiling (1000 chars)\n                if (currentChunkText.length + trimmedPara.length + 1 <= 1000) {\n                    currentChunkText += (currentChunkText ? \" \" : \"\") + trimmedPara;\n                } else {\n                    // If the accumulated chunk is at least 500 characters, save it\n                    if (currentChunkText.length >= 500) {\n                        chunkCounter++;\n                        chunks.push({\n                            chunk_id: `chunk-${doc.id}-${page.page_number}-${chunkCounter}`,\n                            document_name: doc.document_name,\n                            page_number: page.page_number,\n                            section_header: page.section_header,\n                            chunk_text: currentChunkText,\n                            word_count: currentChunkText.split(/\\s+/).filter(Boolean).length\n                        });\n                        currentChunkText = trimmedPara;\n                    } else {\n                        // Handle massive single paragraph blocks (> 1000 chars) by splitting on sentences\n                        if (trimmedPara.length > 1000) {\n                            if (currentChunkText.length > 0) {\n                                chunkCounter++;\n                                chunks.push({\n                                    chunk_id: `chunk-${doc.id}-${page.page_number}-${chunkCounter}`,\n                                    document_name: doc.document_name,\n                                    page_number: page.page_number,\n                                    section_header: page.section_header,\n                                    chunk_text: currentChunkText,\n                                    word_count: currentChunkText.split(/\\s+/).filter(Boolean).length\n                                });\n                                currentChunkText = \"\";\n                            }\n                            // Split paragraph by sentences\n                            const sentences = trimmedPara.split(/(?<=[.?!])\\s+/);\n                            let sentenceBuffer = \"\";\n                            for (const sentence of sentences){\n                                if (sentenceBuffer.length + sentence.length + 1 <= 1000) {\n                                    sentenceBuffer += (sentenceBuffer ? \" \" : \"\") + sentence;\n                                } else {\n                                    if (sentenceBuffer.length > 0) {\n                                        chunkCounter++;\n                                        chunks.push({\n                                            chunk_id: `chunk-${doc.id}-${page.page_number}-${chunkCounter}`,\n                                            document_name: doc.document_name,\n                                            page_number: page.page_number,\n                                            section_header: page.section_header,\n                                            chunk_text: sentenceBuffer,\n                                            word_count: sentenceBuffer.split(/\\s+/).filter(Boolean).length\n                                        });\n                                    }\n                                    sentenceBuffer = sentence;\n                                }\n                            }\n                            if (sentenceBuffer.length > 0) {\n                                currentChunkText = sentenceBuffer;\n                            }\n                        } else {\n                            // Flush current chunk first if we need to start a fresh sequence\n                            if (currentChunkText.length > 0) {\n                                chunkCounter++;\n                                chunks.push({\n                                    chunk_id: `chunk-${doc.id}-${page.page_number}-${chunkCounter}`,\n                                    document_name: doc.document_name,\n                                    page_number: page.page_number,\n                                    section_header: page.section_header,\n                                    chunk_text: currentChunkText,\n                                    word_count: currentChunkText.split(/\\s+/).filter(Boolean).length\n                                });\n                            }\n                            currentChunkText = trimmedPara;\n                        }\n                    }\n                }\n            }\n            // Flush remaining text for this page boundary\n            if (currentChunkText.length > 0) {\n                chunkCounter++;\n                chunks.push({\n                    chunk_id: `chunk-${doc.id}-${page.page_number}-${chunkCounter}`,\n                    document_name: doc.document_name,\n                    page_number: page.page_number,\n                    section_header: page.section_header,\n                    chunk_text: currentChunkText,\n                    word_count: currentChunkText.split(/\\s+/).filter(Boolean).length\n                });\n            }\n        }\n        return chunks;\n    }\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,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QUNuQjs0QkFDRjs0QkFFQSxJQUFJRCxlQUFlWixNQUFNLEdBQUcsR0FBRztnQ0FDN0JKLG1CQUFtQmdCOzRCQUNyQjt3QkFDRixPQUFPOzRCQUNMLGlFQUFpRTs0QkFDakUsSUFBSWhCLGlCQUFpQkksTUFBTSxHQUFHLEdBQUc7Z0NBQy9CWDtnQ0FDQUQsT0FBT2EsSUFBSSxDQUFDO29DQUNWQyxVQUFVLENBQUMsTUFBTSxFQUFFZixJQUFJZ0IsRUFBRSxDQUFDLENBQUMsRUFBRWIsS0FBS2MsV0FBVyxDQUFDLENBQUMsRUFBRWYsY0FBYztvQ0FDL0RnQixlQUFlbEIsSUFBSWtCLGFBQWE7b0NBQ2hDRCxhQUFhZCxLQUFLYyxXQUFXO29DQUM3QkUsZ0JBQWdCaEIsS0FBS2dCLGNBQWM7b0NBQ25DQyxZQUFZWDtvQ0FDWlksWUFBWVosaUJBQWlCRCxLQUFLLENBQUMsT0FBT2MsTUFBTSxDQUFDQyxTQUFTVixNQUFNO2dDQUNsRTs0QkFDRjs0QkFDQUosbUJBQW1CRTt3QkFDckI7b0JBQ0Y7Z0JBQ0Y7WUFDRjtZQUVBLDhDQUE4QztZQUM5QyxJQUFJRixpQkFBaUJJLE1BQU0sR0FBRyxHQUFHO2dCQUMvQlg7Z0JBQ0FELE9BQU9hLElBQUksQ0FBQztvQkFDVkMsVUFBVSxDQUFDLE1BQU0sRUFBRWYsSUFBSWdCLEVBQUUsQ0FBQyxDQUFDLEVBQUViLEtBQUtjLFdBQVcsQ0FBQyxDQUFDLEVBQUVmLGNBQWM7b0JBQy9EZ0IsZUFBZWxCLElBQUlrQixhQUFhO29CQUNoQ0QsYUFBYWQsS0FBS2MsV0FBVztvQkFDN0JFLGdCQUFnQmhCLEtBQUtnQixjQUFjO29CQUNuQ0MsWUFBWVg7b0JBQ1pZLFlBQVlaLGlCQUFpQkQsS0FBSyxDQUFDLE9BQU9jLE1BQU0sQ0FBQ0MsU0FBU1YsTUFBTTtnQkFDbEU7WUFDRjtRQUNGO1FBRUEsT0FBT1o7SUFDVDtBQUNGIiwic291cmNlcyI6WyJDOlxcVXNlcnNcXGFyaXNoXFxEb3dubG9hZHNcXFByb2plY3RzV2Vic2l0ZXNcXHJlc2VhcmNob3NcXHNyY1xcc2VydmljZXNcXENodW5raW5nRW5naW5lLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEluZ2VzdGVkRG9jdW1lbnQsIFNlbWFudGljQ2h1bmsgfSBmcm9tICcuLi90eXBlcy9yZXRyaWV2YWwnO1xuXG5leHBvcnQgY2xhc3MgQ2h1bmtpbmdFbmdpbmUge1xuICAvKipcbiAgICogQXV0b21hdGljYWxseSBzZWdtZW50cyBhbiBJbmdlc3RlZERvY3VtZW50IGludG8gbG9naWNhbCBzZW1hbnRpYyBjaHVua3NcbiAgICogb2YgYXBwcm94aW1hdGVseSA1MDAtMTAwMCBjaGFyYWN0ZXJzLCByZXNwZWN0aW5nIHNlY3Rpb24gYW5kIHBhZ2UgYm91bmRhcmllcy5cbiAgICovXG4gIHB1YmxpYyBzdGF0aWMgY2h1bmtEb2N1bWVudChkb2M6IEluZ2VzdGVkRG9jdW1lbnQpOiBTZW1hbnRpY0NodW5rW10ge1xuICAgIGNvbnN0IGNodW5rczogU2VtYW50aWNDaHVua1tdID0gW107XG4gICAgbGV0IGNodW5rQ291bnRlciA9IDA7XG5cbiAgICBmb3IgKGNvbnN0IHBhZ2Ugb2YgZG9jLnBhZ2VzKSB7XG4gICAgICBjb25zdCB0ZXh0ID0gcGFnZS5yYXdfdGV4dDtcbiAgICAgIFxuICAgICAgLy8gU3BsaXQgYnkgcGFyYWdyYXBoc1xuICAgICAgY29uc3QgcGFyYWdyYXBocyA9IHRleHQuc3BsaXQoL1xcblxccypcXG4vKTtcbiAgICAgIGxldCBjdXJyZW50Q2h1bmtUZXh0ID0gXCJcIjtcblxuICAgICAgZm9yIChjb25zdCBwYXJhIG9mIHBhcmFncmFwaHMpIHtcbiAgICAgICAgY29uc3QgdHJpbW1lZFBhcmEgPSBwYXJhLnRyaW0oKTtcbiAgICAgICAgaWYgKCF0cmltbWVkUGFyYSkgY29udGludWU7XG5cbiAgICAgICAgLy8gQ2hlY2sgaWYgYWRkaW5nIHRoaXMgcGFyYWdyYXBoIGV4Y2VlZHMgb3VyIHVwcGVyIGNlaWxpbmcgKDEwMDAgY2hhcnMpXG4gICAgICAgIGlmIChjdXJyZW50Q2h1bmtUZXh0Lmxlbmd0aCArIHRyaW1tZWRQYXJhLmxlbmd0aCArIDEgPD0gMTAwMCkge1xuICAgICAgICAgIGN1cnJlbnRDaHVua1RleHQgKz0gKGN1cnJlbnRDaHVua1RleHQgPyBcIiBcIiA6IFwiXCIpICsgdHJpbW1lZFBhcmE7XG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgLy8gSWYgdGhlIGFjY3VtdWxhdGVkIGNodW5rIGlzIGF0IGxlYXN0IDUwMCBjaGFyYWN0ZXJzLCBzYXZlIGl0XG4gICAgICAgICAgaWYgKGN1cnJlbnRDaHVua1RleHQubGVuZ3RoID49IDUwMCkge1xuICAgICAgICAgICAgY2h1bmtDb3VudGVyKys7XG4gICAgICAgICAgICBjaHVua3MucHVzaCh7XG4gICAgICAgICAgICAgIGNodW5rX2lkOiBgY2h1bmstJHtkb2MuaWR9LSR7cGFnZS5wYWdlX251bWJlcn0tJHtjaHVua0NvdW50ZXJ9YCxcbiAgICAgICAgICAgICAgZG9jdW1lbnRfbmFtZTogZG9jLmRvY3VtZW50X25hbWUsXG4gICAgICAgICAgICAgIHBhZ2VfbnVtYmVyOiBwYWdlLnBhZ2VfbnVtYmVyLFxuICAgICAgICAgICAgICBzZWN0aW9uX2hlYWRlcjogcGFnZS5zZWN0aW9uX2hlYWRlcixcbiAgICAgICAgICAgICAgY2h1bmtfdGV4dDogY3VycmVudENodW5rVGV4dCxcbiAgICAgICAgICAgICAgd29yZF9jb3VudDogY3VycmVudENodW5rVGV4dC5zcGxpdCgvXFxzKy8pLmZpbHRlcihCb29sZWFuKS5sZW5ndGhcbiAgICAgICAgICAgIH0pO1xuICAgICAgICAgICAgY3VycmVudENodW5rVGV4dCA9IHRyaW1tZWRQYXJhO1xuICAgICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICAvLyBIYW5kbGUgbWFzc2l2ZSBzaW5nbGUgcGFyYWdyYXBoIGJsb2NrcyAoPiAxMDAwIGNoYXJzKSBieSBzcGxpdHRpbmcgb24gc2VudGVuY2VzXG4gICAgICAgICAgICBpZiAodHJpbW1lZFBhcmEubGVuZ3RoID4gMTAwMCkge1xuICAgICAgICAgICAgICBpZiAoY3VycmVudENodW5rVGV4dC5sZW5ndGggPiAwKSB7XG4gICAgICAgICAgICAgICAgY2h1bmtDb3VudGVyKys7XG4gICAgICAgICAgICAgICAgY2h1bmtzLnB1c2goe1xuICAgICAgICAgICAgICAgICAgY2h1bmtfaWQ6IGBjaHVuay0ke2RvYy5pZH0tJHtwYWdlLnBhZ2VfbnVtYmVyfS0ke2NodW5rQ291bnRlcn1gLFxuICAgICAgICAgICAgICAgICAgZG9jdW1lbnRfbmFtZTogZG9jLmRvY3VtZW50X25hbWUsXG4gICAgICAgICAgICAgICAgICBwYWdlX251bWJlcjogcGFnZS5wYWdlX251bWJlcixcbiAgICAgICAgICAgICAgICAgIHNlY3Rpb25faGVhZGVyOiBwYWdlLnNlY3Rpb25faGVhZGVyLFxuICAgICAgICAgICAgICAgICAgY2h1bmtfdGV4dDogY3VycmVudENodW5rVGV4dCxcbiAgICAgICAgICAgICAgICAgIHdvcmRfY291bnQ6IGN1cnJlbnRDaHVua1RleHQuc3BsaXQoL1xccysvKS5maWx0ZXIoQm9vbGVhbikubGVuZ3RoXG4gICAgICAgICAgICAgICAgfSk7XG4gICAgICAgICAgICAgICAgY3VycmVudENodW5rVGV4dCA9IFwiXCI7XG4gICAgICAgICAgICAgIH1cblxuICAgICAgICAgICAgICAvLyBTcGxpdCBwYXJhZ3JhcGggYnkgc2VudGVuY2VzXG4gICAgICAgICAgICAgIGNvbnN0IHNlbnRlbmNlcyA9IHRyaW1tZWRQYXJhLnNwbGl0KC8oPzw9Wy4/IV0pXFxzKy8pO1xuICAgICAgICAgICAgICBsZXQgc2VudGVuY2VCdWZmZXIgPSBcIlwiO1xuXG4gICAgICAgICAgICAgIGZvciAoY29uc3Qgc2VudGVuY2Ugb2Ygc2VudGVuY2VzKSB7XG4gICAgICAgICAgICAgICAgaWYgKHNlbnRlbmNlQnVmZmVyLmxlbmd0aCArIHNlbnRlbmNlLmxlbmd0aCArIDEgPD0gMTAwMCkge1xuICAgICAgICAgICAgICAgICAgc2VudGVuY2VCdWZmZXIgKz0gKHNlbnRlbmNlQnVmZmVyID8gXCIgXCIgOiBcIlwiKSArIHNlbnRlbmNlO1xuICAgICAgICAgICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICAgICAgICBpZiAoc2VudGVuY2VCdWZmZXIubGVuZ3RoID4gMCkge1xuICAgICAgICAgICAgICAgICAgICBjaHVua0NvdW50ZXIrKztcbiAgICAgICAgICAgICAgICAgICAgY2h1bmtzLnB1c2goe1xuICAgICAgICAgICAgICAgICAgICAgIGNodW5rX2lkOiBgY2h1bmstJHtkb2MuaWR9LSR7cGFnZS5wYWdlX251bWJlcn0tJHtjaHVua0NvdW50ZXJ9YCxcbiAgICAgICAgICAgICAgICAgICAgICBkb2N1bWVudF9uYW1lOiBkb2MuZG9jdW1lbnRfbmFtZSxcbiAgICAgICAgICAgICAgICAgICAgICBwYWdlX251bWJlcjogcGFnZS5wYWdlX251bWJlcixcbiAgICAgICAgICAgICAgICAgICAgICBzZWN0aW9uX2hlYWRlcjogcGFnZS5zZWN0aW9uX2hlYWRlcixcbiAgICAgICAgICAgICAgICAgICAgICBjaHVua190ZXh0OiBzZW50ZW5jZUJ1ZmZlcixcbiAgICAgICAgICAgICAgICAgICAgICB3b3JkX2NvdW50OiBzZW50ZW5jZUJ1ZmZlci5zcGxpdCgvXFxzKy8pLmZpbHRlcihCb29sZWFuKS5sZW5ndGhcbiAgICAgICAgICAgICAgICAgICAgfSk7XG4gICAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgICAgICBzZW50ZW5jZUJ1ZmZlciA9IHNlbnRlbmNlO1xuICAgICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgfVxuXG4gICAgICAgICAgICAgIGlmIChzZW50ZW5jZUJ1ZmZlci5sZW5ndGggPiAwKSB7XG4gICAgICAgICAgICAgICAgY3VycmVudENodW5rVGV4dCA9IHNlbnRlbmNlQnVmZmVyO1xuICAgICAgICAgICAgICB9XG4gICAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgICAvLyBGbHVzaCBjdXJyZW50IGNodW5rIGZpcnN0IGlmIHdlIG5lZWQgdG8gc3RhcnQgYSBmcmVzaCBzZXF1ZW5jZVxuICAgICAgICAgICAgICBpZiAoY3VycmVudENodW5rVGV4dC5sZW5ndGggPiAwKSB7XG4gICAgICAgICAgICAgICAgY2h1bmtDb3VudGVyKys7XG4gICAgICAgICAgICAgICAgY2h1bmtzLnB1c2goe1xuICAgICAgICAgICAgICAgICAgY2h1bmtfaWQ6IGBjaHVuay0ke2RvYy5pZH0tJHtwYWdlLnBhZ2VfbnVtYmVyfS0ke2NodW5rQ291bnRlcn1gLFxuICAgICAgICAgICAgICAgICAgZG9jdW1lbnRfbmFtZTogZG9jLmRvY3VtZW50X25hbWUsXG4gICAgICAgICAgICAgICAgICBwYWdlX251bWJlcjogcGFnZS5wYWdlX251bWJlcixcbiAgICAgICAgICAgICAgICAgIHNlY3Rpb25faGVhZGVyOiBwYWdlLnNlY3Rpb25faGVhZGVyLFxuICAgICAgICAgICAgICAgICAgY2h1bmtfdGV4dDogY3VycmVudENodW5rVGV4dCxcbiAgICAgICAgICAgICAgICAgIHdvcmRfY291bnQ6IGN1cnJlbnRDaHVua1RleHQuc3BsaXQoL1xccysvKS5maWx0ZXIoQm9vbGVhbikubGVuZ3RoXG4gICAgICAgICAgICAgICAgfSk7XG4gICAgICAgICAgICAgIH1cbiAgICAgICAgICAgICAgY3VycmVudENodW5rVGV4dCA9IHRyaW1tZWRQYXJhO1xuICAgICAgICAgICAgfVxuICAgICAgICAgIH1cbiAgICAgICAgfVxuICAgICAgfVxuXG4gICAgICAvLyBGbHVzaCByZW1haW5pbmcgdGV4dCBmb3IgdGhpcyBwYWdlIGJvdW5kYXJ5XG4gICAgICBpZiAoY3VycmVudENodW5rVGV4dC5sZW5ndGggPiAwKSB7XG4gICAgICAgIGNodW5rQ291bnRlcisrO1xuICAgICAgICBjaHVua3MucHVzaCh7XG4gICAgICAgICAgY2h1bmtfaWQ6IGBjaHVuay0ke2RvYy5pZH0tJHtwYWdlLnBhZ2VfbnVtYmVyfS0ke2NodW5rQ291bnRlcn1gLFxuICAgICAgICAgIGRvY3VtZW50X25hbWU6IGRvYy5kb2N1bWVudF9uYW1lLFxuICAgICAgICAgIHBhZ2VfbnVtYmVyOiBwYWdlLnBhZ2VfbnVtYmVyLFxuICAgICAgICAgIHNlY3Rpb25faGVhZGVyOiBwYWdlLnNlY3Rpb25faGVhZGVyLFxuICAgICAgICAgIGNodW5rX3RleHQ6IGN1cnJlbnRDaHVua1RleHQsXG4gICAgICAgICAgd29yZF9jb3VudDogY3VycmVudENodW5rVGV4dC5zcGxpdCgvXFxzKy8pLmZpbHRlcihCb29sZWFuKS5sZW5ndGhcbiAgICAgICAgfSk7XG4gICAgICB9XG4gICAgfVxuXG4gICAgcmV0dXJuIGNodW5rcztcbiAgfVxufSJdLCJuYW1lcyI6WyJDaHVua2luZ0VuZ2luZSIsImNodW5rRG9jdW1lbnQiLCJkb2MiLCJjaHVua3MiLCJjaHVua0NvdW50ZXIiLCJwYWdlIiwicGFnZXMiLCJ0ZXh0IiwicmF3X3RleHQiLCJwYXJhZ3JhcGhzIiwic3BsaXQiLCJjdXJyZW50Q2h1bmtUZXh0IiwicGFyYSIsInRyaW1tZWRQYXJhIiwidHJpbSIsImxlbmd0aCIsInB1c2giLCJjaHVua19pZCIsImlkIiwicGFnZV9udW1iZXIiLCJkb2N1bWVudF9uYW1lIiwic2VjdGlvbl9oZWFkZXIiLCJjaHVua190ZXh0Iiwid29yZF9jb3VudCIsImZpbHRlciIsIkJvb2xlYW4iLCJzZW50ZW5jZXMiLCJzZW50ZW5jZUJ1ZmZlciIsInNlbnRlbmNlIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///(ssr)/./src/services/ChunkingEngine.ts\n");
+
+/***/ }),
+
+/***/ "(ssr)/./src/services/EmbeddingService.ts":
+/*!******************************************!*\
+  !*** ./src/services/EmbeddingService.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   EmbeddingService: () => (/* binding */ EmbeddingService)\n/* harmony export */ });\n/* harmony import */ var _google_genai__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @google/genai */ \"(ssr)/./node_modules/@google/genai/dist/node/index.mjs\");\n\n/**\r\n * Service responsible for generating semantic embeddings using Google's Gemini models.\r\n * Compatible with @google/genai SDK (v2.9.0+).\r\n */ class EmbeddingService {\n    constructor(apiKey){\n        this.modelName = 'gemini-embedding-001';\n        this.ai = new _google_genai__WEBPACK_IMPORTED_MODULE_0__.GoogleGenAI({\n            apiKey\n        });\n    }\n    /**\r\n   * Generates a single vector embedding for a given text string.\r\n   */ async generateEmbedding(text) {\n        try {\n            const result = await this.ai.models.embedContent({\n                model: this.modelName,\n                contents: {\n                    parts: [\n                        {\n                            text\n                        }\n                    ]\n                }\n            });\n            if (!result.embeddings?.values) {\n                throw new Error('Failed to retrieve embedding values from Gemini API.');\n            }\n            return result.embeddings[0].values ?? [];\n        } catch (error) {\n            console.error('Embedding generation failed:', error);\n            throw new Error('Semantic vector generation error.');\n        }\n    }\n    /**\r\n   * Generates batch embeddings for multiple text strings.\r\n   */ async generateEmbeddings(texts) {\n        try {\n            const batchRequests = texts.map((text)=>this.ai.models.embedContent({\n                    model: this.modelName,\n                    contents: {\n                        parts: [\n                            {\n                                text\n                            }\n                        ]\n                    }\n                }));\n            const responses = await Promise.all(batchRequests);\n            return responses.map((res, index)=>{\n                if (!res.embeddings?.[0]?.values) {\n                    throw new Error(`Failed to retrieve embedding for index ${index}`);\n                }\n                return res.embeddings[0].values;\n            });\n        } catch (error) {\n            console.error('Batch embedding generation failed:', error);\n            throw new Error('Semantic batch vector generation error.');\n        }\n    }\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9zcmMvc2VydmljZXMvRW1iZWRkaW5nU2VydmljZS50cyIsIm1hcHBpbmdzIjoiOzs7OztBQUE0QztBQUU1Qzs7O0NBR0MsR0FDTSxNQUFNQztJQUlYLFlBQVlDLE1BQWMsQ0FBRTthQUZwQkMsWUFBWTtRQUdsQixJQUFJLENBQUNDLEVBQUUsR0FBRyxJQUFJSixzREFBV0EsQ0FBQztZQUFFRTtRQUFPO0lBQ3JDO0lBRUE7O0dBRUMsR0FDRCxNQUFhRyxrQkFBa0JDLElBQVksRUFBcUI7UUFDOUQsSUFBSTtZQUNGLE1BQU1DLFNBQVMsTUFBTSxJQUFJLENBQUNILEVBQUUsQ0FBQ0ksTUFBTSxDQUFDQyxZQUFZLENBQUM7Z0JBQy9DQyxPQUFPLElBQUksQ0FBQ1AsU0FBUztnQkFDckJRLFVBQVU7b0JBQUVDLE9BQU87d0JBQUM7NEJBQUVOO3dCQUFLO3FCQUFFO2dCQUFDO1lBQ2hDO1lBRUEsSUFBSSxDQUFDQyxPQUFPTSxVQUFVLEVBQUVDLFFBQVE7Z0JBQzlCLE1BQU0sSUFBSUMsTUFBTTtZQUNsQjtZQUVBLE9BQU9SLE9BQU9NLFVBQVUsQ0FBQyxFQUFFLENBQUNDLE1BQU0sSUFBSSxFQUFFO1FBQzFDLEVBQUUsT0FBT0UsT0FBTztZQUNkQyxRQUFRRCxLQUFLLENBQUMsZ0NBQWdDQTtZQUM5QyxNQUFNLElBQUlELE1BQU07UUFDbEI7SUFDRjtJQUVBOztHQUVDLEdBQ0QsTUFBYUcsbUJBQW1CQyxLQUFlLEVBQXVCO1FBQ3BFLElBQUk7WUFDRixNQUFNQyxnQkFBZ0JELE1BQU1FLEdBQUcsQ0FBQyxDQUFDZixPQUMvQixJQUFJLENBQUNGLEVBQUUsQ0FBQ0ksTUFBTSxDQUFDQyxZQUFZLENBQUM7b0JBQzFCQyxPQUFPLElBQUksQ0FBQ1AsU0FBUztvQkFDckJRLFVBQVU7d0JBQUVDLE9BQU87NEJBQUM7Z0NBQUVOOzRCQUFLO3lCQUFFO29CQUFDO2dCQUNoQztZQUdGLE1BQU1nQixZQUFZLE1BQU1DLFFBQVFDLEdBQUcsQ0FBQ0o7WUFFcEMsT0FBT0UsVUFBVUQsR0FBRyxDQUFDLENBQUNJLEtBQUtDO2dCQUMvQixJQUFJLENBQUNELElBQUlaLFVBQVUsRUFBRSxDQUFDLEVBQUUsRUFBRUMsUUFBUTtvQkFDaEMsTUFBTSxJQUFJQyxNQUFNLENBQUMsdUNBQXVDLEVBQUVXLE9BQU87Z0JBQ25FO2dCQUVBLE9BQU9ELElBQUlaLFVBQVUsQ0FBQyxFQUFFLENBQUNDLE1BQU07WUFDakM7UUFDSSxFQUFFLE9BQU9FLE9BQU87WUFDZEMsUUFBUUQsS0FBSyxDQUFDLHNDQUFzQ0E7WUFDcEQsTUFBTSxJQUFJRCxNQUFNO1FBQ2xCO0lBQ0Y7QUFDRiIsInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxhcmlzaFxcRG93bmxvYWRzXFxQcm9qZWN0c1dlYnNpdGVzXFxyZXNlYXJjaG9zXFxzcmNcXHNlcnZpY2VzXFxFbWJlZGRpbmdTZXJ2aWNlLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEdvb2dsZUdlbkFJIH0gZnJvbSAnQGdvb2dsZS9nZW5haSc7XHJcblxyXG4vKipcclxuICogU2VydmljZSByZXNwb25zaWJsZSBmb3IgZ2VuZXJhdGluZyBzZW1hbnRpYyBlbWJlZGRpbmdzIHVzaW5nIEdvb2dsZSdzIEdlbWluaSBtb2RlbHMuXHJcbiAqIENvbXBhdGlibGUgd2l0aCBAZ29vZ2xlL2dlbmFpIFNESyAodjIuOS4wKykuXHJcbiAqL1xyXG5leHBvcnQgY2xhc3MgRW1iZWRkaW5nU2VydmljZSB7XHJcbiAgcHJpdmF0ZSBhaTogR29vZ2xlR2VuQUk7XHJcbiAgcHJpdmF0ZSBtb2RlbE5hbWUgPSAnZ2VtaW5pLWVtYmVkZGluZy0wMDEnO1xyXG5cclxuICBjb25zdHJ1Y3RvcihhcGlLZXk6IHN0cmluZykge1xyXG4gICAgdGhpcy5haSA9IG5ldyBHb29nbGVHZW5BSSh7IGFwaUtleSB9KTtcclxuICB9XHJcblxyXG4gIC8qKlxyXG4gICAqIEdlbmVyYXRlcyBhIHNpbmdsZSB2ZWN0b3IgZW1iZWRkaW5nIGZvciBhIGdpdmVuIHRleHQgc3RyaW5nLlxyXG4gICAqL1xyXG4gIHB1YmxpYyBhc3luYyBnZW5lcmF0ZUVtYmVkZGluZyh0ZXh0OiBzdHJpbmcpOiBQcm9taXNlPG51bWJlcltdPiB7XHJcbiAgICB0cnkge1xyXG4gICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCB0aGlzLmFpLm1vZGVscy5lbWJlZENvbnRlbnQoe1xyXG4gICAgICAgIG1vZGVsOiB0aGlzLm1vZGVsTmFtZSxcclxuICAgICAgICBjb250ZW50czogeyBwYXJ0czogW3sgdGV4dCB9XSB9LFxyXG4gICAgICB9KTtcclxuXHJcbiAgICAgIGlmICghcmVzdWx0LmVtYmVkZGluZ3M/LnZhbHVlcykge1xyXG4gICAgICAgIHRocm93IG5ldyBFcnJvcignRmFpbGVkIHRvIHJldHJpZXZlIGVtYmVkZGluZyB2YWx1ZXMgZnJvbSBHZW1pbmkgQVBJLicpO1xyXG4gICAgICB9XHJcblxyXG4gICAgICByZXR1cm4gcmVzdWx0LmVtYmVkZGluZ3NbMF0udmFsdWVzID8/IFtdO1xyXG4gICAgfSBjYXRjaCAoZXJyb3IpIHtcclxuICAgICAgY29uc29sZS5lcnJvcignRW1iZWRkaW5nIGdlbmVyYXRpb24gZmFpbGVkOicsIGVycm9yKTtcclxuICAgICAgdGhyb3cgbmV3IEVycm9yKCdTZW1hbnRpYyB2ZWN0b3IgZ2VuZXJhdGlvbiBlcnJvci4nKTtcclxuICAgIH1cclxuICB9XHJcblxyXG4gIC8qKlxyXG4gICAqIEdlbmVyYXRlcyBiYXRjaCBlbWJlZGRpbmdzIGZvciBtdWx0aXBsZSB0ZXh0IHN0cmluZ3MuXHJcbiAgICovXHJcbiAgcHVibGljIGFzeW5jIGdlbmVyYXRlRW1iZWRkaW5ncyh0ZXh0czogc3RyaW5nW10pOiBQcm9taXNlPG51bWJlcltdW10+IHtcclxuICAgIHRyeSB7XHJcbiAgICAgIGNvbnN0IGJhdGNoUmVxdWVzdHMgPSB0ZXh0cy5tYXAoKHRleHQpID0+IFxyXG4gICAgICAgIHRoaXMuYWkubW9kZWxzLmVtYmVkQ29udGVudCh7XHJcbiAgICAgICAgICBtb2RlbDogdGhpcy5tb2RlbE5hbWUsXHJcbiAgICAgICAgICBjb250ZW50czogeyBwYXJ0czogW3sgdGV4dCB9XSB9LFxyXG4gICAgICAgIH0pXHJcbiAgICAgICk7XHJcblxyXG4gICAgICBjb25zdCByZXNwb25zZXMgPSBhd2FpdCBQcm9taXNlLmFsbChiYXRjaFJlcXVlc3RzKTtcclxuICAgICAgXHJcbiAgICAgIHJldHVybiByZXNwb25zZXMubWFwKChyZXMsIGluZGV4KSA9PiB7XHJcbiAgaWYgKCFyZXMuZW1iZWRkaW5ncz8uWzBdPy52YWx1ZXMpIHtcclxuICAgIHRocm93IG5ldyBFcnJvcihgRmFpbGVkIHRvIHJldHJpZXZlIGVtYmVkZGluZyBmb3IgaW5kZXggJHtpbmRleH1gKTtcclxuICB9XHJcblxyXG4gIHJldHVybiByZXMuZW1iZWRkaW5nc1swXS52YWx1ZXM7XHJcbn0pO1xyXG4gICAgfSBjYXRjaCAoZXJyb3IpIHtcclxuICAgICAgY29uc29sZS5lcnJvcignQmF0Y2ggZW1iZWRkaW5nIGdlbmVyYXRpb24gZmFpbGVkOicsIGVycm9yKTtcclxuICAgICAgdGhyb3cgbmV3IEVycm9yKCdTZW1hbnRpYyBiYXRjaCB2ZWN0b3IgZ2VuZXJhdGlvbiBlcnJvci4nKTtcclxuICAgIH1cclxuICB9XHJcbn0iXSwibmFtZXMiOlsiR29vZ2xlR2VuQUkiLCJFbWJlZGRpbmdTZXJ2aWNlIiwiYXBpS2V5IiwibW9kZWxOYW1lIiwiYWkiLCJnZW5lcmF0ZUVtYmVkZGluZyIsInRleHQiLCJyZXN1bHQiLCJtb2RlbHMiLCJlbWJlZENvbnRlbnQiLCJtb2RlbCIsImNvbnRlbnRzIiwicGFydHMiLCJlbWJlZGRpbmdzIiwidmFsdWVzIiwiRXJyb3IiLCJlcnJvciIsImNvbnNvbGUiLCJnZW5lcmF0ZUVtYmVkZGluZ3MiLCJ0ZXh0cyIsImJhdGNoUmVxdWVzdHMiLCJtYXAiLCJyZXNwb25zZXMiLCJQcm9taXNlIiwiYWxsIiwicmVzIiwiaW5kZXgiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///(ssr)/./src/services/EmbeddingService.ts\n");
+
+/***/ }),
+
 /***/ "(ssr)/./src/services/gemini.ts":
 /*!********************************!*\
   !*** ./src/services/gemini.ts ***!
@@ -167,7 +189,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   useResearchStore: () => (/* binding */ useResearchStore)\n/* harmony export */ });\n/* harmony import */ var zustand__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! zustand */ \"(ssr)/./node_modules/zustand/esm/react.mjs\");\n\nconst useResearchStore = (0,zustand__WEBPACK_IMPORTED_MODULE_0__.create)((set)=>({\n        apiKey: \"\",\n        documents: [\n            {\n                id: \"sample-attention\",\n                document_name: \"Attention_Is_All_You_Need.pdf\",\n                total_pages: 2,\n                pages: [\n                    {\n                        page_number: 1,\n                        section_header: \"Abstract\",\n                        raw_text: \"The dominant sequence transduction models are based on complex recurrent or convolutional neural networks. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms.\"\n                    },\n                    {\n                        page_number: 2,\n                        section_header: \"3.1 Scaled Dot-Product Attention\",\n                        raw_text: \"We compute the attention matrix scores precisely via softmax(QK^T / sqrt(d_k))V. This parallelizes sequences and reduces memory overheads.\"\n                    }\n                ]\n            }\n        ],\n        activeDocId: \"sample-attention\",\n        activePage: 1,\n        currentRoute: null,\n        copilotResponse: null,\n        isCopilotLoading: false,\n        isPDFIngesting: false,\n        setApiKey: (key)=>set({\n                apiKey: key\n            }),\n        addDocument: (doc)=>set((state)=>({\n                    documents: [\n                        ...state.documents,\n                        doc\n                    ],\n                    activeDocId: doc.id,\n                    activePage: 1\n                })),\n        setActiveDocId: (id)=>set({\n                activeDocId: id,\n                activePage: 1\n            }),\n        setActivePage: (page)=>set({\n                activePage: page\n            }),\n        setRoute: (route)=>set({\n                currentRoute: route\n            }),\n        setCopilotResponse: (response)=>set({\n                copilotResponse: response\n            }),\n        setCopilotLoading: (loading)=>set({\n                isCopilotLoading: loading\n            }),\n        setPDFIngesting: (loading)=>set({\n                isPDFIngesting: loading\n            })\n    }));\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9zcmMvc3RhdGUvdXNlUmVzZWFyY2hTdG9yZS50cyIsIm1hcHBpbmdzIjoiOzs7OztBQUFpQztBQXdCMUIsTUFBTUMsbUJBQW1CRCwrQ0FBTUEsQ0FBZ0IsQ0FBQ0UsTUFBUztRQUM5REMsUUFBUTtRQUNSQyxXQUFXO1lBQ1Q7Z0JBQ0VDLElBQUk7Z0JBQ0pDLGVBQWU7Z0JBQ2ZDLGFBQWE7Z0JBQ2JDLE9BQU87b0JBQ0w7d0JBQ0VDLGFBQWE7d0JBQ2JDLGdCQUFnQjt3QkFDaEJDLFVBQVU7b0JBQ1o7b0JBQ0E7d0JBQ0VGLGFBQWE7d0JBQ2JDLGdCQUFnQjt3QkFDaEJDLFVBQVU7b0JBQ1o7aUJBQ0Q7WUFDSDtTQUNEO1FBQ0RDLGFBQWE7UUFDYkMsWUFBWTtRQUNaQyxjQUFjO1FBQ2RDLGlCQUFpQjtRQUNqQkMsa0JBQWtCO1FBQ2xCQyxnQkFBZ0I7UUFFaEJDLFdBQVcsQ0FBQ0MsTUFBUWpCLElBQUk7Z0JBQUVDLFFBQVFnQjtZQUFJO1FBRXRDQyxhQUFhLENBQUNDLE1BQVFuQixJQUFJLENBQUNvQixRQUFXO29CQUNwQ2xCLFdBQVc7MkJBQUlrQixNQUFNbEIsU0FBUzt3QkFBRWlCO3FCQUFJO29CQUNwQ1QsYUFBYVMsSUFBSWhCLEVBQUU7b0JBQ25CUSxZQUFZO2dCQUNkO1FBRUFVLGdCQUFnQixDQUFDbEIsS0FBT0gsSUFBSTtnQkFBRVUsYUFBYVA7Z0JBQUlRLFlBQVk7WUFBRTtRQUM3RFcsZUFBZSxDQUFDQyxPQUFTdkIsSUFBSTtnQkFBRVcsWUFBWVk7WUFBSztRQUNoREMsVUFBVSxDQUFDQyxRQUFVekIsSUFBSTtnQkFBRVksY0FBY2E7WUFBTTtRQUMvQ0Msb0JBQW9CLENBQUNDLFdBQWEzQixJQUFJO2dCQUFFYSxpQkFBaUJjO1lBQVM7UUFDbEVDLG1CQUFtQixDQUFDQyxVQUFZN0IsSUFBSTtnQkFBRWMsa0JBQWtCZTtZQUFRO1FBQ2hFQyxpQkFBaUIsQ0FBQ0QsVUFBWTdCLElBQUk7Z0JBQUVlLGdCQUFnQmM7WUFBUTtJQUM5RCxJQUFJIiwic291cmNlcyI6WyJDOlxcVXNlcnNcXGFyaXNoXFxEb3dubG9hZHNcXFByb2plY3RzV2Vic2l0ZXNcXHJlc2VhcmNob3NcXHNyY1xcc3RhdGVcXHVzZVJlc2VhcmNoU3RvcmUudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgY3JlYXRlIH0gZnJvbSAnenVzdGFuZCc7XG5pbXBvcnQgeyBJbmdlc3RlZERvY3VtZW50IH0gZnJvbSAnLi4vdHlwZXMvcmV0cmlldmFsJztcbmltcG9ydCB7IENsYXNzaWZpY2F0aW9uUm91dGUgfSBmcm9tICcuLi90eXBlcy9yb3V0aW5nJztcblxuaW50ZXJmYWNlIFJlc2VhcmNoU3RvcmUge1xuICBhcGlLZXk6IHN0cmluZztcbiAgZG9jdW1lbnRzOiBJbmdlc3RlZERvY3VtZW50W107XG4gIGFjdGl2ZURvY0lkOiBzdHJpbmcgfCBudWxsO1xuICBhY3RpdmVQYWdlOiBudW1iZXI7XG4gIGN1cnJlbnRSb3V0ZTogQ2xhc3NpZmljYXRpb25Sb3V0ZSB8IG51bGw7XG4gIGNvcGlsb3RSZXNwb25zZTogc3RyaW5nIHwgbnVsbDtcbiAgaXNDb3BpbG90TG9hZGluZzogYm9vbGVhbjtcbiAgaXNQREZJbmdlc3Rpbmc6IGJvb2xlYW47XG4gIFxuICBzZXRBcGlLZXk6IChrZXk6IHN0cmluZykgPT4gdm9pZDtcbiAgYWRkRG9jdW1lbnQ6IChkb2M6IEluZ2VzdGVkRG9jdW1lbnQpID0+IHZvaWQ7XG4gIHNldEFjdGl2ZURvY0lkOiAoaWQ6IHN0cmluZyB8IG51bGwpID0+IHZvaWQ7XG4gIHNldEFjdGl2ZVBhZ2U6IChwYWdlOiBudW1iZXIpID0+IHZvaWQ7XG4gIHNldFJvdXRlOiAocm91dGU6IENsYXNzaWZpY2F0aW9uUm91dGUgfCBudWxsKSA9PiB2b2lkO1xuICBzZXRDb3BpbG90UmVzcG9uc2U6IChyZXNwb25zZTogc3RyaW5nIHwgbnVsbCkgPT4gdm9pZDtcbiAgc2V0Q29waWxvdExvYWRpbmc6IChsb2FkaW5nOiBib29sZWFuKSA9PiB2b2lkO1xuICBzZXRQREZJbmdlc3Rpbmc6IChsb2FkaW5nOiBib29sZWFuKSA9PiB2b2lkO1xufVxuXG5leHBvcnQgY29uc3QgdXNlUmVzZWFyY2hTdG9yZSA9IGNyZWF0ZTxSZXNlYXJjaFN0b3JlPigoc2V0KSA9PiAoe1xuICBhcGlLZXk6IFwiXCIsXG4gIGRvY3VtZW50czogW1xuICAgIHtcbiAgICAgIGlkOiBcInNhbXBsZS1hdHRlbnRpb25cIixcbiAgICAgIGRvY3VtZW50X25hbWU6IFwiQXR0ZW50aW9uX0lzX0FsbF9Zb3VfTmVlZC5wZGZcIixcbiAgICAgIHRvdGFsX3BhZ2VzOiAyLFxuICAgICAgcGFnZXM6IFtcbiAgICAgICAge1xuICAgICAgICAgIHBhZ2VfbnVtYmVyOiAxLFxuICAgICAgICAgIHNlY3Rpb25faGVhZGVyOiBcIkFic3RyYWN0XCIsXG4gICAgICAgICAgcmF3X3RleHQ6IFwiVGhlIGRvbWluYW50IHNlcXVlbmNlIHRyYW5zZHVjdGlvbiBtb2RlbHMgYXJlIGJhc2VkIG9uIGNvbXBsZXggcmVjdXJyZW50IG9yIGNvbnZvbHV0aW9uYWwgbmV1cmFsIG5ldHdvcmtzLiBXZSBwcm9wb3NlIGEgbmV3IHNpbXBsZSBuZXR3b3JrIGFyY2hpdGVjdHVyZSwgdGhlIFRyYW5zZm9ybWVyLCBiYXNlZCBzb2xlbHkgb24gYXR0ZW50aW9uIG1lY2hhbmlzbXMuXCJcbiAgICAgICAgfSxcbiAgICAgICAge1xuICAgICAgICAgIHBhZ2VfbnVtYmVyOiAyLFxuICAgICAgICAgIHNlY3Rpb25faGVhZGVyOiBcIjMuMSBTY2FsZWQgRG90LVByb2R1Y3QgQXR0ZW50aW9uXCIsXG4gICAgICAgICAgcmF3X3RleHQ6IFwiV2UgY29tcHV0ZSB0aGUgYXR0ZW50aW9uIG1hdHJpeCBzY29yZXMgcHJlY2lzZWx5IHZpYSBzb2Z0bWF4KFFLXlQgLyBzcXJ0KGRfaykpVi4gVGhpcyBwYXJhbGxlbGl6ZXMgc2VxdWVuY2VzIGFuZCByZWR1Y2VzIG1lbW9yeSBvdmVyaGVhZHMuXCJcbiAgICAgICAgfVxuICAgICAgXVxuICAgIH1cbiAgXSxcbiAgYWN0aXZlRG9jSWQ6IFwic2FtcGxlLWF0dGVudGlvblwiLFxuICBhY3RpdmVQYWdlOiAxLFxuICBjdXJyZW50Um91dGU6IG51bGwsXG4gIGNvcGlsb3RSZXNwb25zZTogbnVsbCxcbiAgaXNDb3BpbG90TG9hZGluZzogZmFsc2UsXG4gIGlzUERGSW5nZXN0aW5nOiBmYWxzZSxcblxuICBzZXRBcGlLZXk6IChrZXkpID0+IHNldCh7IGFwaUtleToga2V5IH0pLFxuICBcbiAgYWRkRG9jdW1lbnQ6IChkb2MpID0+IHNldCgoc3RhdGUpID0+ICh7IFxuICAgIGRvY3VtZW50czogWy4uLnN0YXRlLmRvY3VtZW50cywgZG9jXSxcbiAgICBhY3RpdmVEb2NJZDogZG9jLmlkLFxuICAgIGFjdGl2ZVBhZ2U6IDFcbiAgfSkpLFxuICBcbiAgc2V0QWN0aXZlRG9jSWQ6IChpZCkgPT4gc2V0KHsgYWN0aXZlRG9jSWQ6IGlkLCBhY3RpdmVQYWdlOiAxIH0pLFxuICBzZXRBY3RpdmVQYWdlOiAocGFnZSkgPT4gc2V0KHsgYWN0aXZlUGFnZTogcGFnZSB9KSxcbiAgc2V0Um91dGU6IChyb3V0ZSkgPT4gc2V0KHsgY3VycmVudFJvdXRlOiByb3V0ZSB9KSxcbiAgc2V0Q29waWxvdFJlc3BvbnNlOiAocmVzcG9uc2UpID0+IHNldCh7IGNvcGlsb3RSZXNwb25zZTogcmVzcG9uc2UgfSksXG4gIHNldENvcGlsb3RMb2FkaW5nOiAobG9hZGluZykgPT4gc2V0KHsgaXNDb3BpbG90TG9hZGluZzogbG9hZGluZyB9KSxcbiAgc2V0UERGSW5nZXN0aW5nOiAobG9hZGluZykgPT4gc2V0KHsgaXNQREZJbmdlc3Rpbmc6IGxvYWRpbmcgfSlcbn0pKTsiXSwibmFtZXMiOlsiY3JlYXRlIiwidXNlUmVzZWFyY2hTdG9yZSIsInNldCIsImFwaUtleSIsImRvY3VtZW50cyIsImlkIiwiZG9jdW1lbnRfbmFtZSIsInRvdGFsX3BhZ2VzIiwicGFnZXMiLCJwYWdlX251bWJlciIsInNlY3Rpb25faGVhZGVyIiwicmF3X3RleHQiLCJhY3RpdmVEb2NJZCIsImFjdGl2ZVBhZ2UiLCJjdXJyZW50Um91dGUiLCJjb3BpbG90UmVzcG9uc2UiLCJpc0NvcGlsb3RMb2FkaW5nIiwiaXNQREZJbmdlc3RpbmciLCJzZXRBcGlLZXkiLCJrZXkiLCJhZGREb2N1bWVudCIsImRvYyIsInN0YXRlIiwic2V0QWN0aXZlRG9jSWQiLCJzZXRBY3RpdmVQYWdlIiwicGFnZSIsInNldFJvdXRlIiwicm91dGUiLCJzZXRDb3BpbG90UmVzcG9uc2UiLCJyZXNwb25zZSIsInNldENvcGlsb3RMb2FkaW5nIiwibG9hZGluZyIsInNldFBERkluZ2VzdGluZyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///(ssr)/./src/state/useResearchStore.ts\n");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   useResearchStore: () => (/* binding */ useResearchStore)\n/* harmony export */ });\n/* harmony import */ var zustand__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! zustand */ \"(ssr)/./node_modules/zustand/esm/react.mjs\");\n/* harmony import */ var _services_ChunkingEngine__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/ChunkingEngine */ \"(ssr)/./src/services/ChunkingEngine.ts\");\n/* harmony import */ var _services_EmbeddingService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../services/EmbeddingService */ \"(ssr)/./src/services/EmbeddingService.ts\");\n\n\n\nconst initialDoc = {\n    id: \"sample-attention\",\n    document_name: \"Attention_Is_All_You_Need.pdf\",\n    total_pages: 2,\n    pages: [\n        {\n            page_number: 1,\n            section_header: \"Abstract\",\n            raw_text: \"The dominant sequence transduction models are based on complex recurrent or convolutional neural networks. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms.\"\n        },\n        {\n            page_number: 2,\n            section_header: \"3.1 Scaled Dot-Product Attention\",\n            raw_text: \"We compute the attention matrix scores precisely via softmax(QK^T / sqrt(d_k))V. This parallelizes sequences and reduces memory overheads.\"\n        }\n    ]\n};\nconst initialChunks = _services_ChunkingEngine__WEBPACK_IMPORTED_MODULE_0__.ChunkingEngine.chunkDocument(initialDoc);\nconst useResearchStore = (0,zustand__WEBPACK_IMPORTED_MODULE_2__.create)((set, get)=>({\n        apiKey: \"\",\n        documents: [\n            initialDoc\n        ],\n        chunks: initialChunks,\n        embeddings: [],\n        activeDocId: \"sample-attention\",\n        activePage: 1,\n        currentRoute: null,\n        copilotResponse: null,\n        isCopilotLoading: false,\n        isPDFIngesting: false,\n        isEmbedding: false,\n        setApiKey: (key)=>set({\n                apiKey: key\n            }),\n        addDocument: async (doc)=>{\n            // 1. Chunk the document\n            const generatedChunks = _services_ChunkingEngine__WEBPACK_IMPORTED_MODULE_0__.ChunkingEngine.chunkDocument(doc);\n            // 2. Prepare for embedding generation\n            set({\n                isEmbedding: true\n            });\n            try {\n                const apiKey = get().apiKey;\n                if (!apiKey) {\n                    throw new Error('Gemini API key not configured.');\n                }\n                const embeddingService = new _services_EmbeddingService__WEBPACK_IMPORTED_MODULE_1__.EmbeddingService(apiKey);\n                const chunkTexts = generatedChunks.map((c)=>c.chunk_text);\n                const vectors = await embeddingService.generateEmbeddings(chunkTexts);\n                const newEmbeddings = vectors.map((vec, idx)=>({\n                        chunk_id: generatedChunks[idx].chunk_id,\n                        embedding: vec\n                    }));\n                // 3. Update state with both Chunks and Embeddings\n                set((state)=>({\n                        documents: [\n                            ...state.documents,\n                            doc\n                        ],\n                        chunks: [\n                            ...state.chunks,\n                            ...generatedChunks\n                        ],\n                        embeddings: [\n                            ...state.embeddings,\n                            ...newEmbeddings\n                        ],\n                        activeDocId: doc.id,\n                        activePage: 1,\n                        isEmbedding: false\n                    }));\n            } catch (error) {\n                console.error(\"Failed to generate embeddings for document:\", error);\n                set({\n                    isEmbedding: false\n                });\n            }\n        },\n        setActiveDocId: (id)=>set({\n                activeDocId: id,\n                activePage: 1\n            }),\n        setActivePage: (page)=>set({\n                activePage: page\n            }),\n        setRoute: (route)=>set({\n                currentRoute: route\n            }),\n        setCopilotResponse: (response)=>set({\n                copilotResponse: response\n            }),\n        setCopilotLoading: (loading)=>set({\n                isCopilotLoading: loading\n            }),\n        setPDFIngesting: (loading)=>set({\n                isPDFIngesting: loading\n            })\n    }));\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9zcmMvc3RhdGUvdXNlUmVzZWFyY2hTdG9yZS50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7O0FBQWlDO0FBRzJCO0FBQ0k7QUF5QmhFLE1BQU1HLGFBQStCO0lBQ25DQyxJQUFJO0lBQ0pDLGVBQWU7SUFDZkMsYUFBYTtJQUNiQyxPQUFPO1FBQ0w7WUFDRUMsYUFBYTtZQUNiQyxnQkFBZ0I7WUFDaEJDLFVBQVU7UUFDWjtRQUNBO1lBQ0VGLGFBQWE7WUFDYkMsZ0JBQWdCO1lBQ2hCQyxVQUFVO1FBQ1o7S0FDRDtBQUNIO0FBRUEsTUFBTUMsZ0JBQWdCVixvRUFBY0EsQ0FBQ1csYUFBYSxDQUFDVDtBQUU1QyxNQUFNVSxtQkFBbUJiLCtDQUFNQSxDQUFnQixDQUFDYyxLQUFLQyxNQUFTO1FBQ25FQyxRQUFRO1FBQ1JDLFdBQVc7WUFBQ2Q7U0FBVztRQUN2QmUsUUFBUVA7UUFDUlEsWUFBWSxFQUFFO1FBQ2RDLGFBQWE7UUFDYkMsWUFBWTtRQUNaQyxjQUFjO1FBQ2RDLGlCQUFpQjtRQUNqQkMsa0JBQWtCO1FBQ2xCQyxnQkFBZ0I7UUFDaEJDLGFBQWE7UUFFYkMsV0FBVyxDQUFDQyxNQUFRZCxJQUFJO2dCQUFFRSxRQUFRWTtZQUFJO1FBRXRDQyxhQUFhLE9BQU9DO1lBQ2xCLHdCQUF3QjtZQUN4QixNQUFNQyxrQkFBa0I5QixvRUFBY0EsQ0FBQ1csYUFBYSxDQUFDa0I7WUFFckQsc0NBQXNDO1lBQ3RDaEIsSUFBSTtnQkFBRVksYUFBYTtZQUFLO1lBRXhCLElBQUk7Z0JBQ0YsTUFBTVYsU0FBU0QsTUFBTUMsTUFBTTtnQkFDakMsSUFBSSxDQUFDQSxRQUFRO29CQUNYLE1BQU0sSUFBSWdCLE1BQU07Z0JBQ2xCO2dCQUNBLE1BQU1DLG1CQUFtQixJQUFJL0Isd0VBQWdCQSxDQUFDYztnQkFDeEMsTUFBTWtCLGFBQWFILGdCQUFnQkksR0FBRyxDQUFDQyxDQUFBQSxJQUFLQSxFQUFFQyxVQUFVO2dCQUN4RCxNQUFNQyxVQUFVLE1BQU1MLGlCQUFpQk0sa0JBQWtCLENBQUNMO2dCQUUxRCxNQUFNTSxnQkFBa0NGLFFBQVFILEdBQUcsQ0FBQyxDQUFDTSxLQUFLQyxNQUFTO3dCQUNqRUMsVUFBVVosZUFBZSxDQUFDVyxJQUFJLENBQUNDLFFBQVE7d0JBQ3ZDQyxXQUFXSDtvQkFDYjtnQkFFQSxrREFBa0Q7Z0JBQ2xEM0IsSUFBSSxDQUFDK0IsUUFBVzt3QkFDZDVCLFdBQVc7K0JBQUk0QixNQUFNNUIsU0FBUzs0QkFBRWE7eUJBQUk7d0JBQ3BDWixRQUFROytCQUFJMkIsTUFBTTNCLE1BQU07K0JBQUthO3lCQUFnQjt3QkFDN0NaLFlBQVk7K0JBQUkwQixNQUFNMUIsVUFBVTsrQkFBS3FCO3lCQUFjO3dCQUNuRHBCLGFBQWFVLElBQUkxQixFQUFFO3dCQUNuQmlCLFlBQVk7d0JBQ1pLLGFBQWE7b0JBQ2Y7WUFDRixFQUFFLE9BQU9vQixPQUFPO2dCQUNkQyxRQUFRRCxLQUFLLENBQUMsK0NBQStDQTtnQkFDN0RoQyxJQUFJO29CQUFFWSxhQUFhO2dCQUFNO1lBQzNCO1FBQ0Y7UUFFQXNCLGdCQUFnQixDQUFDNUMsS0FBT1UsSUFBSTtnQkFBRU0sYUFBYWhCO2dCQUFJaUIsWUFBWTtZQUFFO1FBQzdENEIsZUFBZSxDQUFDQyxPQUFTcEMsSUFBSTtnQkFBRU8sWUFBWTZCO1lBQUs7UUFDaERDLFVBQVUsQ0FBQ0MsUUFBVXRDLElBQUk7Z0JBQUVRLGNBQWM4QjtZQUFNO1FBQy9DQyxvQkFBb0IsQ0FBQ0MsV0FBYXhDLElBQUk7Z0JBQUVTLGlCQUFpQitCO1lBQVM7UUFDbEVDLG1CQUFtQixDQUFDQyxVQUFZMUMsSUFBSTtnQkFBRVUsa0JBQWtCZ0M7WUFBUTtRQUNoRUMsaUJBQWlCLENBQUNELFVBQVkxQyxJQUFJO2dCQUFFVyxnQkFBZ0IrQjtZQUFRO0lBQzlELElBQUkiLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcYXJpc2hcXERvd25sb2Fkc1xcUHJvamVjdHNXZWJzaXRlc1xccmVzZWFyY2hvc1xcc3JjXFxzdGF0ZVxcdXNlUmVzZWFyY2hTdG9yZS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBjcmVhdGUgfSBmcm9tICd6dXN0YW5kJztcbmltcG9ydCB7IEluZ2VzdGVkRG9jdW1lbnQsIFNlbWFudGljQ2h1bmssIENodW5rRW1iZWRkaW5nIH0gZnJvbSAnLi4vdHlwZXMvcmV0cmlldmFsJztcbmltcG9ydCB7IENsYXNzaWZpY2F0aW9uUm91dGUgfSBmcm9tICcuLi90eXBlcy9yb3V0aW5nJztcbmltcG9ydCB7IENodW5raW5nRW5naW5lIH0gZnJvbSAnLi4vc2VydmljZXMvQ2h1bmtpbmdFbmdpbmUnO1xuaW1wb3J0IHsgRW1iZWRkaW5nU2VydmljZSB9IGZyb20gJy4uL3NlcnZpY2VzL0VtYmVkZGluZ1NlcnZpY2UnO1xuXG5pbnRlcmZhY2UgUmVzZWFyY2hTdG9yZSB7XG4gIGFwaUtleTogc3RyaW5nO1xuICBkb2N1bWVudHM6IEluZ2VzdGVkRG9jdW1lbnRbXTtcbiAgY2h1bmtzOiBTZW1hbnRpY0NodW5rW107XG4gIGVtYmVkZGluZ3M6IENodW5rRW1iZWRkaW5nW107XG4gIGFjdGl2ZURvY0lkOiBzdHJpbmcgfCBudWxsO1xuICBhY3RpdmVQYWdlOiBudW1iZXI7XG4gIGN1cnJlbnRSb3V0ZTogQ2xhc3NpZmljYXRpb25Sb3V0ZSB8IG51bGw7XG4gIGNvcGlsb3RSZXNwb25zZTogc3RyaW5nIHwgbnVsbDtcbiAgaXNDb3BpbG90TG9hZGluZzogYm9vbGVhbjtcbiAgaXNQREZJbmdlc3Rpbmc6IGJvb2xlYW47XG4gIGlzRW1iZWRkaW5nOiBib29sZWFuO1xuICBcbiAgc2V0QXBpS2V5OiAoa2V5OiBzdHJpbmcpID0+IHZvaWQ7XG4gIGFkZERvY3VtZW50OiAoZG9jOiBJbmdlc3RlZERvY3VtZW50KSA9PiBQcm9taXNlPHZvaWQ+O1xuICBzZXRBY3RpdmVEb2NJZDogKGlkOiBzdHJpbmcgfCBudWxsKSA9PiB2b2lkO1xuICBzZXRBY3RpdmVQYWdlOiAocGFnZTogbnVtYmVyKSA9PiB2b2lkO1xuICBzZXRSb3V0ZTogKHJvdXRlOiBDbGFzc2lmaWNhdGlvblJvdXRlIHwgbnVsbCkgPT4gdm9pZDtcbiAgc2V0Q29waWxvdFJlc3BvbnNlOiAocmVzcG9uc2U6IHN0cmluZyB8IG51bGwpID0+IHZvaWQ7XG4gIHNldENvcGlsb3RMb2FkaW5nOiAobG9hZGluZzogYm9vbGVhbikgPT4gdm9pZDtcbiAgc2V0UERGSW5nZXN0aW5nOiAobG9hZGluZzogYm9vbGVhbikgPT4gdm9pZDtcbn1cblxuY29uc3QgaW5pdGlhbERvYzogSW5nZXN0ZWREb2N1bWVudCA9IHtcbiAgaWQ6IFwic2FtcGxlLWF0dGVudGlvblwiLFxuICBkb2N1bWVudF9uYW1lOiBcIkF0dGVudGlvbl9Jc19BbGxfWW91X05lZWQucGRmXCIsXG4gIHRvdGFsX3BhZ2VzOiAyLFxuICBwYWdlczogW1xuICAgIHtcbiAgICAgIHBhZ2VfbnVtYmVyOiAxLFxuICAgICAgc2VjdGlvbl9oZWFkZXI6IFwiQWJzdHJhY3RcIixcbiAgICAgIHJhd190ZXh0OiBcIlRoZSBkb21pbmFudCBzZXF1ZW5jZSB0cmFuc2R1Y3Rpb24gbW9kZWxzIGFyZSBiYXNlZCBvbiBjb21wbGV4IHJlY3VycmVudCBvciBjb252b2x1dGlvbmFsIG5ldXJhbCBuZXR3b3Jrcy4gV2UgcHJvcG9zZSBhIG5ldyBzaW1wbGUgbmV0d29yayBhcmNoaXRlY3R1cmUsIHRoZSBUcmFuc2Zvcm1lciwgYmFzZWQgc29sZWx5IG9uIGF0dGVudGlvbiBtZWNoYW5pc21zLlwiXG4gICAgfSxcbiAgICB7XG4gICAgICBwYWdlX251bWJlcjogMixcbiAgICAgIHNlY3Rpb25faGVhZGVyOiBcIjMuMSBTY2FsZWQgRG90LVByb2R1Y3QgQXR0ZW50aW9uXCIsXG4gICAgICByYXdfdGV4dDogXCJXZSBjb21wdXRlIHRoZSBhdHRlbnRpb24gbWF0cml4IHNjb3JlcyBwcmVjaXNlbHkgdmlhIHNvZnRtYXgoUUteVCAvIHNxcnQoZF9rKSlWLiBUaGlzIHBhcmFsbGVsaXplcyBzZXF1ZW5jZXMgYW5kIHJlZHVjZXMgbWVtb3J5IG92ZXJoZWFkcy5cIlxuICAgIH1cbiAgXVxufTtcblxuY29uc3QgaW5pdGlhbENodW5rcyA9IENodW5raW5nRW5naW5lLmNodW5rRG9jdW1lbnQoaW5pdGlhbERvYyk7XG5cbmV4cG9ydCBjb25zdCB1c2VSZXNlYXJjaFN0b3JlID0gY3JlYXRlPFJlc2VhcmNoU3RvcmU+KChzZXQsIGdldCkgPT4gKHtcbiAgYXBpS2V5OiBcIlwiLFxuICBkb2N1bWVudHM6IFtpbml0aWFsRG9jXSxcbiAgY2h1bmtzOiBpbml0aWFsQ2h1bmtzLFxuICBlbWJlZGRpbmdzOiBbXSxcbiAgYWN0aXZlRG9jSWQ6IFwic2FtcGxlLWF0dGVudGlvblwiLFxuICBhY3RpdmVQYWdlOiAxLFxuICBjdXJyZW50Um91dGU6IG51bGwsXG4gIGNvcGlsb3RSZXNwb25zZTogbnVsbCxcbiAgaXNDb3BpbG90TG9hZGluZzogZmFsc2UsXG4gIGlzUERGSW5nZXN0aW5nOiBmYWxzZSxcbiAgaXNFbWJlZGRpbmc6IGZhbHNlLFxuXG4gIHNldEFwaUtleTogKGtleSkgPT4gc2V0KHsgYXBpS2V5OiBrZXkgfSksXG5cbiAgYWRkRG9jdW1lbnQ6IGFzeW5jIChkb2MpID0+IHtcbiAgICAvLyAxLiBDaHVuayB0aGUgZG9jdW1lbnRcbiAgICBjb25zdCBnZW5lcmF0ZWRDaHVua3MgPSBDaHVua2luZ0VuZ2luZS5jaHVua0RvY3VtZW50KGRvYyk7XG4gICAgXG4gICAgLy8gMi4gUHJlcGFyZSBmb3IgZW1iZWRkaW5nIGdlbmVyYXRpb25cbiAgICBzZXQoeyBpc0VtYmVkZGluZzogdHJ1ZSB9KTtcbiAgICBcbiAgICB0cnkge1xuICAgICAgY29uc3QgYXBpS2V5ID0gZ2V0KCkuYXBpS2V5O1xuaWYgKCFhcGlLZXkpIHtcbiAgdGhyb3cgbmV3IEVycm9yKCdHZW1pbmkgQVBJIGtleSBub3QgY29uZmlndXJlZC4nKTtcbn1cbmNvbnN0IGVtYmVkZGluZ1NlcnZpY2UgPSBuZXcgRW1iZWRkaW5nU2VydmljZShhcGlLZXkpO1xuICAgICAgY29uc3QgY2h1bmtUZXh0cyA9IGdlbmVyYXRlZENodW5rcy5tYXAoYyA9PiBjLmNodW5rX3RleHQpO1xuICAgICAgY29uc3QgdmVjdG9ycyA9IGF3YWl0IGVtYmVkZGluZ1NlcnZpY2UuZ2VuZXJhdGVFbWJlZGRpbmdzKGNodW5rVGV4dHMpO1xuICAgICAgXG4gICAgICBjb25zdCBuZXdFbWJlZGRpbmdzOiBDaHVua0VtYmVkZGluZ1tdID0gdmVjdG9ycy5tYXAoKHZlYywgaWR4KSA9PiAoe1xuICAgICAgICBjaHVua19pZDogZ2VuZXJhdGVkQ2h1bmtzW2lkeF0uY2h1bmtfaWQsXG4gICAgICAgIGVtYmVkZGluZzogdmVjXG4gICAgICB9KSk7XG5cbiAgICAgIC8vIDMuIFVwZGF0ZSBzdGF0ZSB3aXRoIGJvdGggQ2h1bmtzIGFuZCBFbWJlZGRpbmdzXG4gICAgICBzZXQoKHN0YXRlKSA9PiAoe1xuICAgICAgICBkb2N1bWVudHM6IFsuLi5zdGF0ZS5kb2N1bWVudHMsIGRvY10sXG4gICAgICAgIGNodW5rczogWy4uLnN0YXRlLmNodW5rcywgLi4uZ2VuZXJhdGVkQ2h1bmtzXSxcbiAgICAgICAgZW1iZWRkaW5nczogWy4uLnN0YXRlLmVtYmVkZGluZ3MsIC4uLm5ld0VtYmVkZGluZ3NdLFxuICAgICAgICBhY3RpdmVEb2NJZDogZG9jLmlkLFxuICAgICAgICBhY3RpdmVQYWdlOiAxLFxuICAgICAgICBpc0VtYmVkZGluZzogZmFsc2VcbiAgICAgIH0pKTtcbiAgICB9IGNhdGNoIChlcnJvcikge1xuICAgICAgY29uc29sZS5lcnJvcihcIkZhaWxlZCB0byBnZW5lcmF0ZSBlbWJlZGRpbmdzIGZvciBkb2N1bWVudDpcIiwgZXJyb3IpO1xuICAgICAgc2V0KHsgaXNFbWJlZGRpbmc6IGZhbHNlIH0pO1xuICAgIH1cbiAgfSxcbiAgXG4gIHNldEFjdGl2ZURvY0lkOiAoaWQpID0+IHNldCh7IGFjdGl2ZURvY0lkOiBpZCwgYWN0aXZlUGFnZTogMSB9KSxcbiAgc2V0QWN0aXZlUGFnZTogKHBhZ2UpID0+IHNldCh7IGFjdGl2ZVBhZ2U6IHBhZ2UgfSksXG4gIHNldFJvdXRlOiAocm91dGUpID0+IHNldCh7IGN1cnJlbnRSb3V0ZTogcm91dGUgfSksXG4gIHNldENvcGlsb3RSZXNwb25zZTogKHJlc3BvbnNlKSA9PiBzZXQoeyBjb3BpbG90UmVzcG9uc2U6IHJlc3BvbnNlIH0pLFxuICBzZXRDb3BpbG90TG9hZGluZzogKGxvYWRpbmcpID0+IHNldCh7IGlzQ29waWxvdExvYWRpbmc6IGxvYWRpbmcgfSksXG4gIHNldFBERkluZ2VzdGluZzogKGxvYWRpbmcpID0+IHNldCh7IGlzUERGSW5nZXN0aW5nOiBsb2FkaW5nIH0pXG59KSk7Il0sIm5hbWVzIjpbImNyZWF0ZSIsIkNodW5raW5nRW5naW5lIiwiRW1iZWRkaW5nU2VydmljZSIsImluaXRpYWxEb2MiLCJpZCIsImRvY3VtZW50X25hbWUiLCJ0b3RhbF9wYWdlcyIsInBhZ2VzIiwicGFnZV9udW1iZXIiLCJzZWN0aW9uX2hlYWRlciIsInJhd190ZXh0IiwiaW5pdGlhbENodW5rcyIsImNodW5rRG9jdW1lbnQiLCJ1c2VSZXNlYXJjaFN0b3JlIiwic2V0IiwiZ2V0IiwiYXBpS2V5IiwiZG9jdW1lbnRzIiwiY2h1bmtzIiwiZW1iZWRkaW5ncyIsImFjdGl2ZURvY0lkIiwiYWN0aXZlUGFnZSIsImN1cnJlbnRSb3V0ZSIsImNvcGlsb3RSZXNwb25zZSIsImlzQ29waWxvdExvYWRpbmciLCJpc1BERkluZ2VzdGluZyIsImlzRW1iZWRkaW5nIiwic2V0QXBpS2V5Iiwia2V5IiwiYWRkRG9jdW1lbnQiLCJkb2MiLCJnZW5lcmF0ZWRDaHVua3MiLCJFcnJvciIsImVtYmVkZGluZ1NlcnZpY2UiLCJjaHVua1RleHRzIiwibWFwIiwiYyIsImNodW5rX3RleHQiLCJ2ZWN0b3JzIiwiZ2VuZXJhdGVFbWJlZGRpbmdzIiwibmV3RW1iZWRkaW5ncyIsInZlYyIsImlkeCIsImNodW5rX2lkIiwiZW1iZWRkaW5nIiwic3RhdGUiLCJlcnJvciIsImNvbnNvbGUiLCJzZXRBY3RpdmVEb2NJZCIsInNldEFjdGl2ZVBhZ2UiLCJwYWdlIiwic2V0Um91dGUiLCJyb3V0ZSIsInNldENvcGlsb3RSZXNwb25zZSIsInJlc3BvbnNlIiwic2V0Q29waWxvdExvYWRpbmciLCJsb2FkaW5nIiwic2V0UERGSW5nZXN0aW5nIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///(ssr)/./src/state/useResearchStore.ts\n");
 
 /***/ }),
 
@@ -226,6 +248,125 @@ module.exports = require("next/dist/server/app-render/work-unit-async-storage.ex
 
 /***/ }),
 
+/***/ "?32c4":
+/*!****************************!*\
+  !*** bufferutil (ignored) ***!
+  \****************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ "?66e9":
+/*!********************************!*\
+  !*** utf-8-validate (ignored) ***!
+  \********************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ "assert":
+/*!*************************!*\
+  !*** external "assert" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("assert");
+
+/***/ }),
+
+/***/ "buffer":
+/*!*************************!*\
+  !*** external "buffer" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("buffer");
+
+/***/ }),
+
+/***/ "child_process":
+/*!********************************!*\
+  !*** external "child_process" ***!
+  \********************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ "crypto":
+/*!*************************!*\
+  !*** external "crypto" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
+
+/***/ }),
+
+/***/ "events":
+/*!*************************!*\
+  !*** external "events" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("events");
+
+/***/ }),
+
+/***/ "fs":
+/*!*********************!*\
+  !*** external "fs" ***!
+  \*********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ "fs/promises":
+/*!******************************!*\
+  !*** external "fs/promises" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs/promises");
+
+/***/ }),
+
+/***/ "http":
+/*!***********************!*\
+  !*** external "http" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ "https":
+/*!************************!*\
+  !*** external "https" ***!
+  \************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
 /***/ "module":
 /*!*************************!*\
   !*** external "module" ***!
@@ -234,6 +375,17 @@ module.exports = require("next/dist/server/app-render/work-unit-async-storage.ex
 
 "use strict";
 module.exports = require("module");
+
+/***/ }),
+
+/***/ "net":
+/*!**********************!*\
+  !*** external "net" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("net");
 
 /***/ }),
 
@@ -281,6 +433,160 @@ module.exports = require("next/dist/shared/lib/router/utils/is-bot");
 
 /***/ }),
 
+/***/ "node:buffer":
+/*!******************************!*\
+  !*** external "node:buffer" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:buffer");
+
+/***/ }),
+
+/***/ "node:fs":
+/*!**************************!*\
+  !*** external "node:fs" ***!
+  \**************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:fs");
+
+/***/ }),
+
+/***/ "node:http":
+/*!****************************!*\
+  !*** external "node:http" ***!
+  \****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:http");
+
+/***/ }),
+
+/***/ "node:https":
+/*!*****************************!*\
+  !*** external "node:https" ***!
+  \*****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:https");
+
+/***/ }),
+
+/***/ "node:net":
+/*!***************************!*\
+  !*** external "node:net" ***!
+  \***************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:net");
+
+/***/ }),
+
+/***/ "node:path":
+/*!****************************!*\
+  !*** external "node:path" ***!
+  \****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:path");
+
+/***/ }),
+
+/***/ "node:process":
+/*!*******************************!*\
+  !*** external "node:process" ***!
+  \*******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:process");
+
+/***/ }),
+
+/***/ "node:stream":
+/*!******************************!*\
+  !*** external "node:stream" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:stream");
+
+/***/ }),
+
+/***/ "node:stream/promises":
+/*!***************************************!*\
+  !*** external "node:stream/promises" ***!
+  \***************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:stream/promises");
+
+/***/ }),
+
+/***/ "node:stream/web":
+/*!**********************************!*\
+  !*** external "node:stream/web" ***!
+  \**********************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:stream/web");
+
+/***/ }),
+
+/***/ "node:url":
+/*!***************************!*\
+  !*** external "node:url" ***!
+  \***************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:url");
+
+/***/ }),
+
+/***/ "node:util":
+/*!****************************!*\
+  !*** external "node:util" ***!
+  \****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:util");
+
+/***/ }),
+
+/***/ "node:zlib":
+/*!****************************!*\
+  !*** external "node:zlib" ***!
+  \****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:zlib");
+
+/***/ }),
+
+/***/ "os":
+/*!*********************!*\
+  !*** external "os" ***!
+  \*********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+
 /***/ "path":
 /*!***********************!*\
   !*** external "path" ***!
@@ -289,6 +595,72 @@ module.exports = require("next/dist/shared/lib/router/utils/is-bot");
 
 "use strict";
 module.exports = require("path");
+
+/***/ }),
+
+/***/ "process":
+/*!**************************!*\
+  !*** external "process" ***!
+  \**************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("process");
+
+/***/ }),
+
+/***/ "querystring":
+/*!******************************!*\
+  !*** external "querystring" ***!
+  \******************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("querystring");
+
+/***/ }),
+
+/***/ "stream":
+/*!*************************!*\
+  !*** external "stream" ***!
+  \*************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("stream");
+
+/***/ }),
+
+/***/ "tls":
+/*!**********************!*\
+  !*** external "tls" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tls");
+
+/***/ }),
+
+/***/ "tty":
+/*!**********************!*\
+  !*** external "tty" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tty");
+
+/***/ }),
+
+/***/ "url":
+/*!**********************!*\
+  !*** external "url" ***!
+  \**********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("url");
 
 /***/ }),
 
@@ -301,6 +673,28 @@ module.exports = require("path");
 "use strict";
 module.exports = require("util");
 
+/***/ }),
+
+/***/ "worker_threads":
+/*!*********************************!*\
+  !*** external "worker_threads" ***!
+  \*********************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("worker_threads");
+
+/***/ }),
+
+/***/ "zlib":
+/*!***********************!*\
+  !*** external "zlib" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("zlib");
+
 /***/ })
 
 };
@@ -310,7 +704,7 @@ module.exports = require("util");
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, ["vendor-chunks/next","vendor-chunks/lucide-react","vendor-chunks/@swc","vendor-chunks/zustand","vendor-chunks/pdfjs-dist"], () => (__webpack_exec__("(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2Fpage.tsx&appDir=C%3A%5CUsers%5Carish%5CDownloads%5CProjectsWebsites%5Cresearchos%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=C%3A%5CUsers%5Carish%5CDownloads%5CProjectsWebsites%5Cresearchos&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!")));
+var __webpack_exports__ = __webpack_require__.X(0, ["vendor-chunks/next","vendor-chunks/google-auth-library","vendor-chunks/lucide-react","vendor-chunks/ws","vendor-chunks/gaxios","vendor-chunks/jws","vendor-chunks/@swc","vendor-chunks/retry","vendor-chunks/json-bigint","vendor-chunks/google-logging-utils","vendor-chunks/zustand","vendor-chunks/gcp-metadata","vendor-chunks/ecdsa-sig-formatter","vendor-chunks/pdfjs-dist","vendor-chunks/@google","vendor-chunks/safe-buffer","vendor-chunks/p-retry","vendor-chunks/jwa","vendor-chunks/extend","vendor-chunks/buffer-equal-constant-time","vendor-chunks/bignumber.js","vendor-chunks/base64-js"], () => (__webpack_exec__("(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2Fpage.tsx&appDir=C%3A%5CUsers%5Carish%5CDownloads%5CProjectsWebsites%5Cresearchos%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=C%3A%5CUsers%5Carish%5CDownloads%5CProjectsWebsites%5Cresearchos&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!")));
 module.exports = __webpack_exports__;
 
 })();

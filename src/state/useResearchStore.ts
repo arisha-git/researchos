@@ -3,12 +3,15 @@ import { IngestedDocument, SemanticChunk, ChunkEmbedding } from '../types/retrie
 import { ClassificationRoute } from '../types/routing';
 import { ChunkingEngine } from '../services/ChunkingEngine';
 import { EmbeddingService } from '../services/EmbeddingService';
+import { RetrievalService } from '../services/RetrievalService';
+import { RetrievedChunk } from '../types/citation';
 
 interface ResearchStore {
   apiKey: string;
   documents: IngestedDocument[];
   chunks: SemanticChunk[];
   embeddings: ChunkEmbedding[];
+  retrievedChunks: RetrievedChunk[];
   activeDocId: string | null;
   activePage: number;
   currentRoute: ClassificationRoute | null;
@@ -19,6 +22,7 @@ interface ResearchStore {
   
   setApiKey: (key: string) => void;
   addDocument: (doc: IngestedDocument) => Promise<void>;
+  performSemanticSearch: (query: string) => Promise<void>;
   setActiveDocId: (id: string | null) => void;
   setActivePage: (page: number) => void;
   setRoute: (route: ClassificationRoute | null) => void;
@@ -52,6 +56,7 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
   documents: [initialDoc],
   chunks: initialChunks,
   embeddings: [],
+  retrievedChunks: [],
   activeDocId: "sample-attention",
   activePage: 1,
   currentRoute: null,
@@ -63,17 +68,19 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
   setApiKey: (key) => set({ apiKey: key }),
 
   addDocument: async (doc) => {
-    // 1. Chunk the document
     const generatedChunks = ChunkingEngine.chunkDocument(doc);
-    
-    // 2. Prepare for embedding generation
     set({ isEmbedding: true });
     
     try {
       const apiKey = get().apiKey;
+      console.log("STORE API KEY:", apiKey);
+
+
+
 if (!apiKey) {
   throw new Error('Gemini API key not configured.');
 }
+
 const embeddingService = new EmbeddingService(apiKey);
       const chunkTexts = generatedChunks.map(c => c.chunk_text);
       const vectors = await embeddingService.generateEmbeddings(chunkTexts);
@@ -83,7 +90,6 @@ const embeddingService = new EmbeddingService(apiKey);
         embedding: vec
       }));
 
-      // 3. Update state with both Chunks and Embeddings
       set((state) => ({
         documents: [...state.documents, doc],
         chunks: [...state.chunks, ...generatedChunks],
@@ -95,6 +101,29 @@ const embeddingService = new EmbeddingService(apiKey);
     } catch (error) {
       console.error("Failed to generate embeddings for document:", error);
       set({ isEmbedding: false });
+    }
+  },
+
+  performSemanticSearch: async (query: string) => {
+    const { apiKey, chunks, embeddings } = get();
+    if (!apiKey || embeddings.length === 0) return;
+
+    try {
+      const embeddingService = new EmbeddingService(apiKey);
+      const queryEmbedding = await embeddingService.generateEmbedding(query);
+      
+      const retrievedResults = RetrievalService.search(
+  queryEmbedding,
+  embeddings,
+  chunks,
+  3
+);
+
+set({
+  retrievedChunks: retrievedResults
+});
+    } catch (error) {
+      console.error("Semantic search failed:", error);
     }
   },
   

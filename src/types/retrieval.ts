@@ -18,9 +18,12 @@ export interface SemanticChunk {
   section_header: string;
   chunk_text: string;
   word_count: number;
+  relevance_score?: number;
 }
 
 export interface ChunkEmbedding {
   chunk_id: string;
   embedding: number[];
 }
+
+

@@ -1,47 +1,51 @@
-import { ChunkEmbedding } from '../types/retrieval';
+import { ChunkEmbedding, SemanticChunk } from '../types/retrieval';
+import { RetrievedChunk } from '../types/citation';
 
-/**
- * Service responsible for semantic retrieval via cosine similarity.
- * Performs similarity search against the chunk embedding index.
- */
 export class RetrievalService {
   /**
    * Calculates the Cosine Similarity between two vectors.
    */
   private static cosineSimilarity(vecA: number[], vecB: number[]): number {
     if (vecA.length !== vecB.length) return 0;
-
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-
+    let dotProduct = 0, normA = 0, normB = 0;
     for (let i = 0; i < vecA.length; i++) {
       dotProduct += vecA[i] * vecB[i];
       normA += vecA[i] * vecA[i];
       normB += vecB[i] * vecB[i];
     }
-
-    if (normA === 0 || normB === 0) return 0;
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    return normA === 0 || normB === 0 ? 0 : dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
   /**
-   * Performs a similarity search to return the top K relevant chunk IDs.
+   * Searches for relevant chunks and returns them as scored, ranked objects.
    */
   public static search(
     queryEmbedding: number[],
     embeddings: ChunkEmbedding[],
-    topK: number = 5
-  ): string[] {
-    const scoredChunks = embeddings.map((item) => ({
-      chunk_id: item.chunk_id,
-      score: this.cosineSimilarity(queryEmbedding, item.embedding),
-    }));
+    chunks: SemanticChunk[],
+    topK: number = 3
+  ): RetrievedChunk[] {
+    return embeddings
+      .map((item) => {
+  const chunk = chunks.find((c) => c.chunk_id === item.chunk_id);
 
-    // Sort by score descending and take top K
-    return scoredChunks
-      .sort((a, b) => b.score - a.score)
-      .slice(0, topK)
-      .map((item) => item.chunk_id);
-  }
-}
+  return {
+    chunk,
+    relevance_score: this.cosineSimilarity(
+      queryEmbedding,
+      item.embedding
+    ),
+  };
+})
+.filter(
+  (item): item is { chunk: SemanticChunk; relevance_score: number } =>
+    !!item.chunk
+)
+.sort((a, b) => b.relevance_score - a.relevance_score)
+  .slice(0, topK)
+  .map((item, index) => ({
+    chunk: item.chunk,
+    relevance_score: item.relevance_score,
+    rank: index + 1,
+      }));
+}}

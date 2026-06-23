@@ -6,15 +6,15 @@ import {
   HelpCircle, Sparkles, Brain, Code, Network, Presentation, Bot, ArrowRight, ShieldAlert
 } from 'lucide-react';
 import { useResearchStore } from '../state/useResearchStore';
-import { AgenticRouter } from '../routing/AgenticRouter';
 import { PDFIngressor } from '../retrieval/PDFIngressor';
+import { GeminiCopilotService } from '../services/GeminiCopilotService';
 
 export default function ResearchOSPage() {
   const { 
     apiKey, setApiKey, documents, addDocument, activeDocId, 
     setActiveDocId, activePage, setActivePage, currentRoute, 
     setRoute, copilotResponse, setCopilotResponse, isCopilotLoading, 
-    setCopilotLoading, isPDFIngesting, setPDFIngesting 
+    setCopilotLoading, isPDFIngesting, setPDFIngesting,performSemanticSearch, 
   } = useResearchStore();
 
   const [activeTab, setActiveTab] = useState<'reader' | 'gap' | 'synthesis' | 'graph' | 'presentation'>('reader');
@@ -37,12 +37,12 @@ export default function ResearchOSPage() {
       const selectedFile = files[0];
       const parsedData = await PDFIngressor.parsePDF(selectedFile);
 
-      addDocument({
-        id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        document_name: parsedData.document_name,
-        total_pages: parsedData.total_pages,
-        pages: parsedData.pages
-      });
+      await addDocument({
+  id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+  document_name: parsedData.document_name,
+  total_pages: parsedData.total_pages,
+  pages: parsedData.pages
+});
 
     } catch (err) {
       console.error("Failed to extract raw text content structures from target PDF:", err);
@@ -55,38 +55,42 @@ export default function ResearchOSPage() {
     }
   };
 
-  // Agentic Query Execution flow
+// Agentic Query Execution flow
   const handleQuerySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!queryInput.trim()) return;
+
+if (!apiKey) {
+  setCopilotResponse("Please provide a Gemini API key.");
+  return;
+}
 
     setCopilotLoading(true);
     setCopilotResponse(null);
 
     try {
-      const router = new AgenticRouter();
-      const route = await router.triageQuery(
-        queryInput, 
-        documents.map(d => d.document_name), 
-        apiKey || "AIzaSyFakeKey"
+      // 1. Perform semantic retrieval
+      await performSemanticSearch(queryInput);
+      
+      // Access updated state from Zustand (retrievedChunks is now populated)
+      const { retrievedChunks } = useResearchStore.getState();
+
+      console.log("Retrieved Chunks:", retrievedChunks);
+
+      // 2. Generate grounded answer
+      const answer = await GeminiCopilotService.generateGroundedAnswer(
+        queryInput,
+        retrievedChunks,
+        apiKey
       );
 
-      setRoute(route);
+      console.log("Gemini Answer:", answer);
 
-      setTimeout(() => {
-        let simulatedBody = "";
-        if (route.workflow_selected === "Multi-Document Comparison") {
-          simulatedBody = `**Analysis compiled:** Based on cross-document evaluation, ${documents[0]?.document_name} targets sequence parallelization, whereas newly ingested layers introduce specific modular scaling constraints.`;
-        } else if (route.workflow_selected === "Research Gap Analysis") {
-          simulatedBody = "**Analysis compiled:** Structural tracking detects gaps within quadratic compute boundaries. Evaluation profiles under extreme long sequence conditions are missing.";
-        } else {
-          simulatedBody = `**Analysis compiled:** Isolated key conceptual segments matching active parameters within the document structure.`;
-        }
-        setCopilotResponse(simulatedBody);
-        setCopilotLoading(false);
-      }, 1000);
-
+      setCopilotResponse(answer);
     } catch (err) {
+      console.error("Copilot generation error:", err);
+      setCopilotResponse("Sorry, I encountered an error while generating your answer.");
+    } finally {
       setCopilotLoading(false);
     }
   };
@@ -314,49 +318,7 @@ export default function ResearchOSPage() {
               </p>
             </div>
 
-            {/* Simulated Triage Workflow Details Panel */}
-            {currentRoute && (
-              <div className="space-y-3 p-3 bg-slate-950 border border-slate-800 rounded-xl animate-fadeIn text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-[9px] uppercase font-mono tracking-wider text-slate-500">Selected:</span>
-                  <span className="px-1.5 py-0.5 rounded bg-indigo-950/40 border border-indigo-950 text-indigo-400 font-semibold text-[10px]">
-                    {currentRoute.workflow_selected}
-                  </span>
-                </div>
-
-                <div className="border-t border-slate-900 pt-2">
-                  <span className="text-[9px] uppercase font-mono tracking-wider text-slate-500 block mb-1">Target Context Nodes</span>
-                  <div className="flex flex-wrap gap-1">
-                    {currentRoute.documents_to_consult.map((doc, idx) => (
-                      <span key={idx} className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px] text-slate-300">
-                        📄 {doc}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-900 pt-2">
-                  <button 
-                    onClick={() => setIsTraceOpen(!isTraceOpen)}
-                    className="w-full text-left text-[9px] font-mono tracking-wider text-indigo-400 hover:text-indigo-300 flex justify-between"
-                  >
-                    <span>{isTraceOpen ? '▼ Hide' : '▶ Show'} System Triage Trace</span>
-                  </button>
-                  {isTraceOpen && (
-                    <div className="mt-2 space-y-2 bg-slate-900 p-2 rounded border border-slate-800 text-[10px] text-slate-400 leading-relaxed font-sans">
-                      <div>
-                        <strong className="text-slate-300 font-mono text-[9px] block uppercase">[Rationale]</strong>
-                        {currentRoute.classification_rationale}
-                      </div>
-                      <div>
-                        <strong className="text-slate-300 font-mono text-[9px] block uppercase">[Analytical Strategy]</strong>
-                        {currentRoute.analytical_strategy}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            
 
             {/* Copilot Response Block */}
             {isCopilotLoading && (

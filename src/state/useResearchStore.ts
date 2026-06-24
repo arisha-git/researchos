@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { IngestedDocument, SemanticChunk, ChunkEmbedding } from '../types/retrieval';
-import { ClassificationRoute } from '../types/routing';
+import { ClassificationRoute, GapAnalysisResult, DomainSynthesisResult } from '../types/routing';
 import { ChunkingEngine } from '../services/ChunkingEngine';
 import { EmbeddingService } from '../services/EmbeddingService';
 import { RetrievalService } from '../services/RetrievalService';
-import { RetrievedChunk } from '../types/citation';
+import { GapAnalysisService } from '../services/GapAnalysisService';
+import { DomainSynthesisService } from '../services/DomainSynthesisService';
+import { RetrievedChunk} from '../types/citation';
 
 interface ResearchStore {
   apiKey: string;
@@ -12,6 +14,8 @@ interface ResearchStore {
   chunks: SemanticChunk[];
   embeddings: ChunkEmbedding[];
   retrievedChunks: RetrievedChunk[];
+  gapAnalysisResult: GapAnalysisResult | null;
+  domainSynthesisResult: DomainSynthesisResult | null;
   activeDocId: string | null;
   activePage: number;
   currentRoute: ClassificationRoute | null;
@@ -23,6 +27,8 @@ interface ResearchStore {
   setApiKey: (key: string) => void;
   addDocument: (doc: IngestedDocument) => Promise<void>;
   performSemanticSearch: (query: string) => Promise<void>;
+  runGapAnalysis: () => Promise<void>;
+  runDomainSynthesis: () => Promise<void>;
   setActiveDocId: (id: string | null) => void;
   setActivePage: (page: number) => void;
   setRoute: (route: ClassificationRoute | null) => void;
@@ -57,6 +63,8 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
   chunks: initialChunks,
   embeddings: [],
   retrievedChunks: [],
+  gapAnalysisResult: null,
+  domainSynthesisResult: null,
   activeDocId: "sample-attention",
   activePage: 1,
   currentRoute: null,
@@ -73,12 +81,9 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
     
     try {
       const apiKey = get().apiKey;
-      console.log("STORE API KEY:", apiKey);
-
-
 
 if (!apiKey) {
-  throw new Error('Gemini API key not configured.');
+  throw new Error("Gemini API key not configured.");
 }
 
 const embeddingService = new EmbeddingService(apiKey);
@@ -112,18 +117,39 @@ const embeddingService = new EmbeddingService(apiKey);
       const embeddingService = new EmbeddingService(apiKey);
       const queryEmbedding = await embeddingService.generateEmbedding(query);
       
-      const retrievedResults = RetrievalService.search(
-  queryEmbedding,
-  embeddings,
-  chunks,
-  3
-);
+      const results = RetrievalService.search(queryEmbedding, embeddings, chunks, 3);
 
-set({
-  retrievedChunks: retrievedResults
-});
+      set({ retrievedChunks: results });
     } catch (error) {
       console.error("Semantic search failed:", error);
+    }
+  },
+
+  runGapAnalysis: async () => {
+    const { documents, apiKey } = get();
+    if (!apiKey || documents.length === 0) return;
+
+    set({ isCopilotLoading: true });
+    try {
+      const result = await GapAnalysisService.analyze(documents, apiKey);
+      set({ gapAnalysisResult: result, isCopilotLoading: false });
+    } catch (error) {
+      console.error("Failed to perform gap analysis:", error);
+      set({ isCopilotLoading: false });
+    }
+  },
+
+  runDomainSynthesis: async () => {
+    const { documents, apiKey } = get();
+    if (!apiKey || documents.length === 0) return;
+
+    set({ isCopilotLoading: true });
+    try {
+      const result = await DomainSynthesisService.synthesize(documents, apiKey);
+      set({ domainSynthesisResult: result, isCopilotLoading: false });
+    } catch (error) {
+      console.error("Failed to perform domain synthesis:", error);
+      set({ isCopilotLoading: false });
     }
   },
   

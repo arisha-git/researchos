@@ -8,10 +8,11 @@ import {
 import { useResearchStore } from '../state/useResearchStore';
 import { PDFIngressor } from '../retrieval/PDFIngressor';
 import { GeminiCopilotService } from '../services/GeminiCopilotService';
+import { SourcesPanel } from '../components/SourcesPanel';
 
 export default function ResearchOSPage() {
   const { 
-    apiKey, setApiKey, documents, addDocument, activeDocId, 
+    apiKey, setApiKey, documents, addDocument, activeDocId, retrievedChunks,
     setActiveDocId, activePage, setActivePage, currentRoute, 
     setRoute, copilotResponse, setCopilotResponse, isCopilotLoading, 
     setCopilotLoading, isPDFIngesting, setPDFIngesting,performSemanticSearch, 
@@ -335,6 +336,21 @@ if (!apiKey) {
             )}
 
           </div>
+
+            {/* Sources Panel */}
+          <SourcesPanel
+  results={retrievedChunks}
+  onNavigate={(docName, page) => {
+    const doc = documents.find(
+      d => d.document_name === docName
+    );
+
+    if (doc) {
+      setActiveDocId(doc.id);
+      setActivePage(page);
+    }
+  }}
+/>
 
           {/* User Query Input Form */}
           <div className="p-3 border-t border-slate-800 bg-slate-900/40 shrink-0">

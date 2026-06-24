@@ -19,6 +19,22 @@ export interface ClassificationRoute {
   presentation_generation_required: boolean;
 }
 
+export interface GapAnalysisResult {
+  missing_research_areas: string[];
+  unanswered_questions: string[];
+  weak_coverage_areas: string[];
+  opportunities_for_investigation: string[];
+  synthesis_summary: string;
+}
+
+export interface DomainSynthesisResult {
+  core_concepts: string[];
+  recurring_themes: string[];
+  methodologies: string[];
+  key_findings: string[];
+  domain_summary: string;
+}
+
 export interface RoutingLogEntry {
   id: string;
   timestamp: number;

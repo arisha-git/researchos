@@ -4,7 +4,8 @@ export type WorkflowType =
   | 'Multi-Document Comparison'
   | 'Research Gap Analysis'
   | 'Methodology Comparison'
-  | 'Domain Synthesis';
+  | 'Domain Synthesis'
+  | 'Presentation Slides';
 
 export interface ClassificationRoute {
   workflow_selected: WorkflowType;
@@ -33,6 +34,15 @@ export interface DomainSynthesisResult {
   methodologies: string[];
   key_findings: string[];
   domain_summary: string;
+}
+
+export interface PresentationResult {
+  title: string;
+  executive_summary: string;
+  key_findings: string[];
+  methodologies: string[];
+  recommendations: string[];
+  conclusion: string;
 }
 
 export interface RoutingLogEntry {

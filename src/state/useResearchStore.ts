@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 import { IngestedDocument, SemanticChunk, ChunkEmbedding } from '../types/retrieval';
-import { ClassificationRoute, GapAnalysisResult, DomainSynthesisResult } from '../types/routing';
+import { ClassificationRoute, GapAnalysisResult, DomainSynthesisResult, PresentationResult } from '../types/routing';
 import { ChunkingEngine } from '../services/ChunkingEngine';
 import { EmbeddingService } from '../services/EmbeddingService';
 import { RetrievalService } from '../services/RetrievalService';
 import { GapAnalysisService } from '../services/GapAnalysisService';
 import { DomainSynthesisService } from '../services/DomainSynthesisService';
 import { RetrievedChunk} from '../types/citation';
+import { GraphService } from '../services/GraphService';
+import { GraphData } from '../types/graph';
+import { PresentationService } from '../services/PresentationService';
+
 
 interface ResearchStore {
   apiKey: string;
@@ -16,6 +20,8 @@ interface ResearchStore {
   retrievedChunks: RetrievedChunk[];
   gapAnalysisResult: GapAnalysisResult | null;
   domainSynthesisResult: DomainSynthesisResult | null;
+  presentationResult: PresentationResult | null;
+  graphData: GraphData | null;
   activeDocId: string | null;
   activePage: number;
   currentRoute: ClassificationRoute | null;
@@ -23,12 +29,16 @@ interface ResearchStore {
   isCopilotLoading: boolean;
   isPDFIngesting: boolean;
   isEmbedding: boolean;
+  isGraphLoading: boolean;
+
   
   setApiKey: (key: string) => void;
   addDocument: (doc: IngestedDocument) => Promise<void>;
   performSemanticSearch: (query: string) => Promise<void>;
   runGapAnalysis: () => Promise<void>;
   runDomainSynthesis: () => Promise<void>;
+  runPresentationGeneration: () => Promise<void>;
+  generateGraph: () => Promise<void>;
   setActiveDocId: (id: string | null) => void;
   setActivePage: (page: number) => void;
   setRoute: (route: ClassificationRoute | null) => void;
@@ -65,6 +75,8 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
   retrievedChunks: [],
   gapAnalysisResult: null,
   domainSynthesisResult: null,
+  presentationResult: null,
+  graphData: null,
   activeDocId: "sample-attention",
   activePage: 1,
   currentRoute: null,
@@ -72,6 +84,7 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
   isCopilotLoading: false,
   isPDFIngesting: false,
   isEmbedding: false,
+  isGraphLoading: false,
 
   setApiKey: (key) => set({ apiKey: key }),
 
@@ -80,13 +93,7 @@ export const useResearchStore = create<ResearchStore>((set, get) => ({
     set({ isEmbedding: true });
     
     try {
-      const apiKey = get().apiKey;
-
-if (!apiKey) {
-  throw new Error("Gemini API key not configured.");
-}
-
-const embeddingService = new EmbeddingService(apiKey);
+      const embeddingService = new EmbeddingService(get().apiKey || "DEFAULT_KEY");
       const chunkTexts = generatedChunks.map(c => c.chunk_text);
       const vectors = await embeddingService.generateEmbeddings(chunkTexts);
       
@@ -150,6 +157,45 @@ const embeddingService = new EmbeddingService(apiKey);
     } catch (error) {
       console.error("Failed to perform domain synthesis:", error);
       set({ isCopilotLoading: false });
+    }
+  },
+
+  runPresentationGeneration: async () => {
+    const { documents, apiKey } = get();
+    if (!apiKey || documents.length === 0) return;
+
+    set({ isCopilotLoading: true });
+
+    try {
+      const result = await PresentationService.generatePresentation(
+        documents,
+        apiKey
+      );
+
+      set({
+        presentationResult: result,
+        isCopilotLoading: false
+      });
+    } catch (error) {
+      console.error("Presentation generation failed:", error);
+      set({ isCopilotLoading: false });
+    }
+  },
+
+  generateGraph: async () => {
+    const { documents, apiKey } = get();
+    if (!apiKey || documents.length === 0) return;
+
+    set({ isGraphLoading: true });
+    try {
+      const result = await GraphService.generateGraph(documents, apiKey);
+      set({ 
+        graphData: result, 
+        isGraphLoading: false 
+      });
+    } catch (error) {
+      console.error("Failed to construct graph:", error);
+      set({ isGraphLoading: false });
     }
   },
   

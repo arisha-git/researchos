@@ -9,6 +9,10 @@ import { useResearchStore } from '../state/useResearchStore';
 import { PDFIngressor } from '../retrieval/PDFIngressor';
 import { GeminiCopilotService } from '../services/GeminiCopilotService';
 import { SourcesPanel } from '../components/SourcesPanel';
+import { GraphPanel } from '../components/GraphPanel';
+import PresentationPanel from '@/components/PresentationPanel';
+import ResearchMetrics from '@/components/ResearchMetrics';
+
 
 export default function ResearchOSPage() {
   const { 
@@ -16,11 +20,30 @@ export default function ResearchOSPage() {
     setActiveDocId, activePage, setActivePage, currentRoute, 
     setRoute, copilotResponse, setCopilotResponse, isCopilotLoading, 
     setCopilotLoading, isPDFIngesting, setPDFIngesting,performSemanticSearch, 
+    graphData, generateGraph, isGraphLoading, gapAnalysisResult, domainSynthesisResult, 
+    runDomainSynthesis, runPresentationGeneration, 
   } = useResearchStore();
+
+  
 
   const [activeTab, setActiveTab] = useState<'reader' | 'gap' | 'synthesis' | 'graph' | 'presentation'>('reader');
   const [queryInput, setQueryInput] = useState('');
   const [isTraceOpen, setIsTraceOpen] = useState(false);
+
+  React.useEffect(() => {
+  if (
+    activeTab === 'graph' &&
+    !graphData &&
+    !isGraphLoading
+  ) {
+    generateGraph();
+  }
+}, [
+  activeTab,
+  graphData,
+  isGraphLoading,
+  generateGraph
+]);
   
   // Create reference to programmatically click hidden HTML5 file input element
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -260,21 +283,24 @@ if (!apiKey) {
             </div>
           )}
 
-          {/* TAB 4: Knowledge Graph Placeholder */}
-          {activeTab === 'graph' && (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <Network className="w-12 h-12 stroke-[1.2] text-slate-600 mb-3" />
-              <h3 className="text-sm font-semibold text-slate-300">Topology Map Offline</h3>
-              <p className="text-xs text-slate-500 max-w-xs mt-1 leading-normal">Connecting extracted concept occurrences to construct real-time topological interaction networks. Available in production iterations.</p>
-            </div>
-          )}
+          {/* TAB 4: Knowledge Graph */}
+{activeTab === 'graph' && (
+  <div className="flex-1 p-6 overflow-hidden">
+    <GraphPanel
+      graphData={graphData}
+      isLoading={isGraphLoading}
+      onNavigateToDoc={(docId) => {
+        setActiveDocId(docId);
+        setActivePage(1);
+        setActiveTab('reader');
+      }}
+    />
+  </div>
+)}
 
-          {/* TAB 5: Presentation Placeholder */}
           {activeTab === 'presentation' && (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <Presentation className="w-12 h-12 stroke-[1.2] text-slate-600 mb-3" />
-              <h3 className="text-sm font-semibold text-slate-300">Briefing Slides Pending</h3>
-              <p className="text-xs text-slate-500 max-w-xs mt-1 leading-normal">Synthesizing thematic clusters into clean, presentation-ready modular components automatically.</p>
+            <div className="h-full">
+              <PresentationPanel />
             </div>
           )}
 

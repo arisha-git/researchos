@@ -9,18 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@google/genai": "latest",
+    "@google/genai": "^0.1.1",
     "lucide-react": "^0.453.0",
-    "next": "^15.0.3",
+    "next": "15.0.3",
     "pdfjs-dist": "^4.8.141",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "19.0.0-rc-66855b9a-20241106",
+    "react-dom": "19.0.0-rc-66855b9a-20241106",
+    "react-hot-toast": "^2.4.1",
     "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.2"

@@ -1,0 +1,3 @@
+module.exports=[6296,a=>{"use strict";var b=a.i(97536);a.s(["default",0,function({children:a}){return(0,b.jsx)("html",{lang:"en",className:"dark h-full",children:(0,b.jsx)("body",{className:"h-full overflow-hidden flex flex-col",children:a})})},"metadata",0,{title:"ResearchOS",description:"AI-powered research operating system that helps users analyze multiple research papers simultaneously."}])},89645,a=>{a.n(a.i(6296))}];
+
+//# sourceMappingURL=Downloads_ProjectsWebsites_researchos_src_app_layout_tsx_0qdnw2g._.js.map

@@ -12,7 +12,7 @@
     "@google/genai": "^2.9.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.453.0",
-    "next": "15.0.3",
+    "next": "^16.2.9",
     "pdfjs-dist": "^4.8.141",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

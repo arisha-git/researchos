@@ -12,6 +12,7 @@ import { SourcesPanel } from '../components/SourcesPanel';
 import { GraphPanel } from '../components/GraphPanel';
 import PresentationPanel from '@/components/PresentationPanel';
 import ResearchMetrics from '@/components/ResearchMetrics';
+import Image from "next/image";
 
 
 export default function ResearchOSPage() {
@@ -124,9 +125,13 @@ if (!apiKey) {
       {/* Top Header */}
       <header className="h-14 border-b border-slate-800 bg-slate-900/60 px-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
-            <Layers className="w-5 h-5" />
-          </div>
+          <Image
+          src="/icon.png"
+          alt="ResearchOS"
+          width={36}
+          height={36}
+          className="rounded-lg"
+          />
           <div>
             <span className="font-bold text-base bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">ResearchOS</span>
             <span className="text-[10px] text-slate-500 ml-2 border-l border-slate-700 pl-2">v1.0.0 MVP</span>

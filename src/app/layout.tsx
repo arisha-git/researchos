@@ -4,6 +4,11 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'ResearchOS',
   description: 'AI-powered research operating system that helps users analyze multiple research papers simultaneously.',
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({

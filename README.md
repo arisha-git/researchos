@@ -2,12 +2,13 @@
 
 > AI-powered multi-document research intelligence platform for academic paper analysis, knowledge synthesis, and automated presentation generation.
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
-![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4)
 
 ---
+
+## Preview
+
+<img src="./screenshots/researchos-preview.png" alt="ResearchOS" width="800">
+
 
 ## Overview
 
@@ -116,6 +117,12 @@ Export the generated presentation as a professionally formatted PDF report.
 - Interactive Knowledge Graph
 - Research Metrics Dashboard
 
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4)
+
+
 ---
 
 ## Project Architecture
@@ -144,37 +151,6 @@ ResearchOS
 
 ---
 
-## Screenshots
-
-### Source Viewer
-
-<img src="./screenshots/source-viewer.png" alt="Source Viewer" width="700">
-
----
-
-### Gap Analysis
-
-<img src="./screenshots/gap-analysis.png" alt="Gap Analysis" width="700">
-
----
-
-### Domain Synthesis
-
-<img src="./screenshots/domain-synthesis.png" alt="Domain Synthesis" width="700">
-
----
-
-### Knowledge Graph
-
-<img src="./screenshots/knowledge-graph.png" alt="Knowledge Graph" width="700">
-
----
-
-### Presentation Generator
-
-<img src="./screenshots/presentation.png" alt="Presentation Generator" width="700">
-
----
 
 ## Installation
 

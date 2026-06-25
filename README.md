@@ -148,31 +148,31 @@ ResearchOS
 
 ### Source Viewer
 
-*(Add screenshot here)*
+![Source Viewer](./screenshots/source-viewer.png)
 
 ---
 
 ### Gap Analysis
 
-*(Add screenshot here)*
+![Gap Analysis](./screenshots/gap-analysis.png)
 
 ---
 
 ### Domain Synthesis
 
-*(Add screenshot here)*
+![Domain Synthesis](./screenshots/domain-synthesis.png)
 
 ---
 
 ### Knowledge Graph
 
-*(Add screenshot here)*
+![Knowledge Graph](./screenshots/knowledge-graph.png)
 
 ---
 
 ### Presentation Generator
 
-*(Add screenshot here)*
+![Presentation Generator](./screenshots/presentation.png)
 
 ---
 
